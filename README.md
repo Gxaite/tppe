@@ -1,9 +1,9 @@
 # Sistema de Gerenciamento de Oficina Mecânica
 
 **Disciplina:** TPPE  
-**Stack:** Flask 3.0, PostgreSQL 15, Docker, SQLAlchemy, JWT
+**Stack:** Flask 3.0 + Jinja2, PostgreSQL 15, Docker, SQLAlchemy, Bootstrap 5
 
-Sistema monolítico para gerenciamento de oficina mecânica com controle de usuários, veículos e serviços.
+Sistema completo para gerenciamento de oficina mecânica com frontend web e API REST.
 
 ## 🚀 Início Rápido
 
@@ -21,11 +21,13 @@ docker-compose up --build
 # 3. Popular banco (novo terminal)
 docker-compose exec app python seed.py
 
-# 4. Testar
-curl http://localhost:5000
+# 4. Acessar sistema
+# Frontend: http://localhost:5000
+# API: http://localhost:5000/api
 ```
 
-**Sistema disponível em:** `http://localhost:5000`
+**🌐 Interface Web:** `http://localhost:5000`  
+**📡 API REST:** `http://localhost:5000/api`
 
 ### Usuários de Teste
 
@@ -59,14 +61,33 @@ curl http://localhost:5000
 ## 🧪 Testes
 
 ```bash
-# Executar testes
-docker-compose exec app pytest -v
+# Testes unitários (Sprint 1)
+docker-compose exec app pytest tests/test_auth.py tests/test_veiculos.py tests/test_servicos.py -v
 
-# Com cobertura
-docker-compose exec app pytest --cov=app --cov-report=html
+# Testes de integração (Sprint 2)
+docker-compose exec app pytest tests/test_integration.py -v
+
+# Todos os testes com cobertura
+docker-compose exec app pytest --cov=app --cov-report=html --cov-report=term
+
+# Verificar cobertura
+open htmlcov/index.html  # ou xdg-open no Linux
 ```
 
-**Total:** 17 testes unitários | **Cobertura:** 80%+
+**Total:** 50+ testes (17 unitários + 33 integração) | **Cobertura:** 85%+
+
+## 🎨 Linting e Formatação
+
+```bash
+# Verificar código
+bash lint.sh
+
+# Aplicar formatação automática
+docker-compose exec app black app/ tests/
+
+# Verificar estilo
+docker-compose exec app flake8 app/ tests/
+```
 
 ## 📚 Documentação da API
 
