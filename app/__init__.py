@@ -32,9 +32,10 @@ def create_app(config=None):
     
     # Registrar blueprints
     with app.app_context():
-        from app.routes import auth, veiculos, servicos, dashboard, usuarios
+        from app.routes import auth, veiculos, servicos, dashboard, usuarios, views
         
-        app.register_blueprint(auth.bp)
+        app.register_blueprint(views.bp)  # Frontend (HTML)
+        app.register_blueprint(auth.bp)   # API
         app.register_blueprint(usuarios.bp)
         app.register_blueprint(veiculos.bp)
         app.register_blueprint(servicos.bp)
@@ -45,16 +46,7 @@ def create_app(config=None):
     
     @app.route('/')
     def index():
-        return {
-            'message': 'Sistema de Gerenciamento de Oficina Mecânica',
-            'version': '1.0.0',
-            'endpoints': {
-                'auth': '/auth',
-                'usuarios': '/usuarios',
-                'veiculos': '/veiculos',
-                'servicos': '/servicos',
-                'dashboard': '/dashboard'
-            }
-        }
+        from flask import redirect, url_for
+        return redirect(url_for('views.login'))
     
     return app

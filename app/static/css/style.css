@@ -1,0 +1,82 @@
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 100px auto;
+}
+
+.dashboard-card {
+    transition: transform 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.status-badge {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.75rem;
+}
+
+.table-actions {
+    white-space: nowrap;
+}
+
+.btn-icon {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.card-stats {
+    border-left: 4px solid;
+}
+
+.card-stats.primary {
+    border-color: var(--primary-color);
+}
+
+.card-stats.success {
+    border-color: var(--success-color);
+}
+
+.card-stats.warning {
+    border-color: var(--warning-color);
+}
+
+.card-stats.danger {
+    border-color: var(--danger-color);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.3;
+}
+
+.form-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.required-field::after {
+    content: " *";
+    color: var(--danger-color);
+}
