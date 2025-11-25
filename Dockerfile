@@ -15,6 +15,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código da aplicação
 COPY . .
 
+# Configurar PYTHONPATH
+ENV PYTHONPATH=/app
+
 # Expor porta
 EXPOSE 5000
 
