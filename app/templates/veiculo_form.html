@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if veiculo else 'Novo' }} Veículo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-car-front"></i>
+                    {{ 'Editar Veículo' if veiculo else 'Cadastrar Novo Veículo' }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST"
+                    action="{{ url_for('views.veiculo_edit', id=veiculo.id) if veiculo else url_for('views.veiculo_create') }}"
+                    id="veiculoForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="marca" class="form-label required-field">Marca</label>
+                            <input type="text" class="form-control" id="marca" name="marca"
+                                value="{{ veiculo.marca if veiculo else '' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="modelo" class="form-label required-field">Modelo</label>
+                            <input type="text" class="form-control" id="modelo" name="modelo"
+                                value="{{ veiculo.modelo if veiculo else '' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="ano" class="form-label required-field">Ano</label>
+                            <input type="number" class="form-control" id="ano" name="ano"
+                                value="{{ veiculo.ano if veiculo else '' }}" min="1900" max="2030" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="placa" class="form-label required-field">Placa</label>
+                            <input type="text" class="form-control" id="placa" name="placa"
+                                value="{{ veiculo.placa if veiculo else '' }}" placeholder="ABC-1234"
+                                pattern="[A-Z]{3}-[0-9]{4}" style="text-transform: uppercase" required>
+                            <div class="form-text">Formato: ABC-1234</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="cor" class="form-label required-field">Cor</label>
+                            <input type="text" class="form-control" id="cor" name="cor"
+                                value="{{ veiculo.cor if veiculo else '' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Salvar
+                        </button>
+                        <a href="{{ url_for('views.veiculos_list') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

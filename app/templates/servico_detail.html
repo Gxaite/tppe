@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Detalhes do Serviço{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-wrench"></i> Serviço #{{ servico.id }}
+                </h4>
+                <span class="badge bg-{{ servico.status_class }} fs-6">{{ servico.status_display }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Cliente</h6>
+                        <p class="fs-5">{{ servico.veiculo.dono.nome }}</p>
+                        <p class="text-muted">{{ servico.veiculo.dono.email }} | {{ servico.veiculo.dono.telefone }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Veículo</h6>
+                        <p class="fs-5">{{ servico.veiculo.marca }} {{ servico.veiculo.modelo }}</p>
+                        <p class="text-muted">{{ servico.veiculo.placa }} - {{ servico.veiculo.ano }} - {{
+                            servico.veiculo.cor }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Mecânico Responsável</h6>
+                        <p class="fs-5">{{ servico.mecanico.nome if servico.mecanico else 'Não atribuído' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Datas</h6>
+                        <p>
+                            <strong>Entrada:</strong> {{ servico.data_entrada.strftime('%d/%m/%Y') }}<br>
+                            <strong>Previsão:</strong> {{ servico.data_previsao.strftime('%d/%m/%Y') if
+                            servico.data_previsao else 'Não definida' }}<br>
+                            {% if servico.data_conclusao %}
+                            <strong>Conclusão:</strong> {{ servico.data_conclusao.strftime('%d/%m/%Y') }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="text-muted">Descrição do Problema</h6>
+                    <p>{{ servico.descricao }}</p>
+                </div>
+
+                {% if servico.observacoes %}
+                <div class="mb-4">
+                    <h6 class="text-muted">Observações</h6>
+                    <p>{{ servico.observacoes }}</p>
+                </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Valor Mão de Obra</h6>
+                        <p class="fs-5 text-primary">R$ {{ "%.2f"|format(servico.valor_mao_obra or 0) }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Valor Peças</h6>
+                        <p class="fs-5 text-info">R$ {{ "%.2f"|format(servico.valor_pecas or 0) }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Valor Total</h6>
+                        <p class="fs-4 text-success"><strong>R$ {{ "%.2f"|format(servico.valor_total or 0) }}</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Orçamentos</h5>
+                {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] and servico.status ==
+                'aguardando_orcamento' %}
+                <a href="{{ url_for('views.orcamento_create', servico_id=servico.id) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle"></i> Novo Orçamento
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if orcamentos %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Mão de Obra</th>
+                                <th>Peças</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for orcamento in orcamentos %}
+                            <tr>
+                                <td>{{ orcamento.data_orcamento.strftime('%d/%m/%Y') }}</td>
+                                <td>R$ {{ "%.2f"|format(orcamento.valor_mao_obra) }}</td>
+                                <td>R$ {{ "%.2f"|format(orcamento.valor_pecas) }}</td>
+                                <td><strong>R$ {{ "%.2f"|format(orcamento.valor_total) }}</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if orcamento.aprovado else 'warning' }}">
+                                        {{ 'Aprovado' if orcamento.aprovado else 'Pendente' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if session.get('tipo_usuario') == 'cliente' and not orcamento.aprovado %}
+                                    <form method="POST"
+                                        action="{{ url_for('views.orcamento_approve', id=orcamento.id) }}"
+                                        class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success"
+                                            onclick="return confirm('Aprovar este orçamento?')">
+                                            <i class="bi bi-check2"></i> Aprovar
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-3">Nenhum orçamento cadastrado</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+            <a href="{{ url_for('views.servicos_list') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] %}
+            <a href="{{ url_for('views.servico_edit', id=servico.id) }}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

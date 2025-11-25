@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Gerente{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-speedometer2"></i> Painel de Gerência</h2>
+        <p class="text-muted">Bem-vindo, {{ session.get('nome') }}!</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('views.usuario_create') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Novo Usuário
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-stats primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Total de Clientes</p>
+                        <h3 class="mb-0">{{ stats.total_clientes }}</h3>
+                    </div>
+                    <i class="bi bi-people stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stats success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Receita Mensal</p>
+                        <h3 class="mb-0">R$ {{ "%.2f"|format(stats.receita_mensal) }}</h3>
+                    </div>
+                    <i class="bi bi-currency-dollar stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stats warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Serviços Ativos</p>
+                        <h3 class="mb-0">{{ stats.servicos_ativos }}</h3>
+                    </div>
+                    <i class="bi bi-tools stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stats primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Veículos Cadastrados</p>
+                        <h3 class="mb-0">{{ stats.total_veiculos }}</h3>
+                    </div>
+                    <i class="bi bi-car-front stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Serviços por Mecânico</h5>
+            </div>
+            <div class="card-body">
+                {% if mecanicos_stats %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mecânico</th>
+                                <th>Aguardando Orç.</th>
+                                <th>Em Andamento</th>
+                                <th>Concluídos (Mês)</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mecanico in mecanicos_stats %}
+                            <tr>
+                                <td>{{ mecanico.nome }}</td>
+                                <td><span class="badge bg-warning">{{ mecanico.aguardando }}</span></td>
+                                <td><span class="badge bg-primary">{{ mecanico.em_andamento }}</span></td>
+                                <td><span class="badge bg-success">{{ mecanico.concluidos }}</span></td>
+                                <td><strong>{{ mecanico.total }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-3">Nenhum mecânico cadastrado</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Distribuição de Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Aguardando Orçamento</span>
+                        <span class="badge bg-secondary">{{ stats.status_aguardando }}</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-secondary"
+                            style="width: {{ (stats.status_aguardando / stats.total_servicos * 100) if stats.total_servicos > 0 else 0 }}%">
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Orçamento Aprovado</span>
+                        <span class="badge bg-info">{{ stats.status_aprovado }}</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-info"
+                            style="width: {{ (stats.status_aprovado / stats.total_servicos * 100) if stats.total_servicos > 0 else 0 }}%">
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Em Andamento</span>
+                        <span class="badge bg-warning">{{ stats.status_andamento }}</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-warning"
+                            style="width: {{ (stats.status_andamento / stats.total_servicos * 100) if stats.total_servicos > 0 else 0 }}%">
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Concluído</span>
+                        <span class="badge bg-success">{{ stats.status_concluido }}</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success"
+                            style="width: {{ (stats.status_concluido / stats.total_servicos * 100) if stats.total_servicos > 0 else 0 }}%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Serviços Recentes</h5>
+    </div>
+    <div class="card-body">
+        {% if servicos %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Veículo</th>
+                        <th>Mecânico</th>
+                        <th>Status</th>
+                        <th>Valor</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for servico in servicos %}
+                    <tr>
+                        <td>{{ servico.veiculo.dono.nome }}</td>
+                        <td>{{ servico.veiculo.modelo }} - {{ servico.veiculo.placa }}</td>
+                        <td>{{ servico.mecanico.nome if servico.mecanico else '-' }}</td>
+                        <td>
+                            <span class="badge bg-{{ servico.status_class }}">
+                                {{ servico.status_display }}
+                            </span>
+                        </td>
+                        <td>R$ {{ "%.2f"|format(servico.valor_total or 0) }}</td>
+                        <td>{{ servico.data_entrada.strftime('%d/%m/%Y') }}</td>
+                        <td class="table-actions">
+                            <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
+                                class="btn btn-sm btn-info btn-icon">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted py-4">Nenhum serviço registrado</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

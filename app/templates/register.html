@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro - Sistema Oficina Mecânica{% endblock %}
+
+{% block content %}
+<div class="login-container" style="max-width: 500px;">
+    <div class="card shadow">
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <i class="bi bi-person-plus text-primary" style="font-size: 3rem;"></i>
+                <h3 class="mt-3">Criar Conta</h3>
+                <p class="text-muted">Preencha os dados abaixo</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('views.register') }}" id="registerForm">
+                <div class="mb-3">
+                    <label for="nome" class="form-label required-field">Nome Completo</label>
+                    <input type="text" class="form-control" id="nome" name="nome" placeholder="João da Silva" required
+                        minlength="3">
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label required-field">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="seu@email.com"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="telefone" class="form-label required-field">Telefone</label>
+                    <input type="tel" class="form-control" id="telefone" name="telefone" placeholder="(61) 99999-9999"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="senha" class="form-label required-field">Senha</label>
+                    <input type="password" class="form-control" id="senha" name="senha"
+                        placeholder="Mínimo 6 caracteres" required minlength="6">
+                    <div class="form-text">A senha deve ter pelo menos 6 caracteres</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="senha_confirm" class="form-label required-field">Confirmar Senha</label>
+                    <input type="password" class="form-control" id="senha_confirm" name="senha_confirm"
+                        placeholder="Digite a senha novamente" required minlength="6">
+                </div>
+
+                <div class="mb-3">
+                    <label for="tipo_usuario" class="form-label required-field">Tipo de Usuário</label>
+                    <select class="form-select" id="tipo_usuario" name="tipo_usuario" required>
+                        <option value="">Selecione...</option>
+                        <option value="cliente">Cliente</option>
+                        <option value="mecanico">Mecânico</option>
+                    </select>
+                    <div class="form-text">Gerentes só podem ser criados por outro gerente</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mb-3">
+                    <i class="bi bi-check-circle"></i> Cadastrar
+                </button>
+
+                <div class="text-center">
+                    <a href="{{ url_for('views.login') }}" class="text-decoration-none">
+                        Já tem conta? Faça login
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+        const senha = document.getElementById('senha').value;
+        const senhaConfirm = document.getElementById('senha_confirm').value;
+
+        if (senha !== senhaConfirm) {
+            e.preventDefault();
+            alert('As senhas não coincidem!');
+            return false;
+        }
+    });
+</script>
+{% endblock %}

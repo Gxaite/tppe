@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Serviços{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-wrench"></i> Serviços</h2>
+    </div>
+    {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] %}
+    <div class="col-auto">
+        <a href="{{ url_for('views.servico_create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Novo Serviço
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if servicos %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Veículo</th>
+                        <th>Descrição</th>
+                        {% if session.get('tipo_usuario') == 'gerente' %}
+                        <th>Mecânico</th>
+                        {% endif %}
+                        <th>Status</th>
+                        <th>Valor</th>
+                        <th>Data Entrada</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for servico in servicos %}
+                    <tr>
+                        <td>#{{ servico.id }}</td>
+                        <td>{{ servico.veiculo.dono.nome }}</td>
+                        <td>{{ servico.veiculo.modelo }} - {{ servico.veiculo.placa }}</td>
+                        <td>{{ servico.descricao[:30] }}...</td>
+                        {% if session.get('tipo_usuario') == 'gerente' %}
+                        <td>{{ servico.mecanico.nome if servico.mecanico else '-' }}</td>
+                        {% endif %}
+                        <td>
+                            <span class="badge bg-{{ servico.status_class }}">
+                                {{ servico.status_display }}
+                            </span>
+                        </td>
+                        <td>R$ {{ "%.2f"|format(servico.valor_total or 0) }}</td>
+                        <td>{{ servico.data_entrada.strftime('%d/%m/%Y') }}</td>
+                        <td class="table-actions">
+                            <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
+                                class="btn btn-sm btn-info btn-icon" title="Ver detalhes">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] %}
+                            <a href="{{ url_for('views.servico_edit', id=servico.id) }}"
+                                class="btn btn-sm btn-warning btn-icon" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-wrench" style="font-size: 4rem; opacity: 0.3;"></i>
+            <p class="text-muted mt-3">Nenhum serviço encontrado</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

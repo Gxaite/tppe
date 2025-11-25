@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Sistema Oficina Mecânica{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="card shadow">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <i class="bi bi-tools text-primary" style="font-size: 3rem;"></i>
+                <h3 class="mt-3">Sistema Oficina Mecânica</h3>
+                <p class="text-muted">Entre com suas credenciais</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('views.login') }}" id="loginForm">
+                <div class="mb-3">
+                    <label for="email" class="form-label required-field">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="seu@email.com"
+                            required autofocus>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="senha" class="form-label required-field">Senha</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" id="senha" name="senha"
+                            placeholder="Digite sua senha" required>
+                    </div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember">
+                    <label class="form-check-label" for="remember">
+                        Lembrar-me
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mb-3">
+                    <i class="bi bi-box-arrow-in-right"></i> Entrar
+                </button>
+
+                <div class="text-center">
+                    <a href="{{ url_for('views.register') }}" class="text-decoration-none">
+                        Não tem conta? Cadastre-se aqui
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-4 text-center text-muted">
+        <small>
+            <strong>Usuários de teste:</strong><br>
+            Gerente: gerente@oficina.com / senha123<br>
+            Mecânico: mecanico1@oficina.com / senha123<br>
+            Cliente: cliente1@oficina.com / senha123
+        </small>
+    </div>
+</div>
+{% endblock %}

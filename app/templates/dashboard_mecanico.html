@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Mecânico{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-speedometer2"></i> Painel Mecânico</h2>
+        <p class="text-muted">Bem-vindo, {{ session.get('nome') }}!</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-stats warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Aguardando Orçamento</p>
+                        <h3 class="mb-0">{{ stats.aguardando_orcamento }}</h3>
+                    </div>
+                    <i class="bi bi-clock-history stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stats primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Em Andamento</p>
+                        <h3 class="mb-0">{{ stats.em_andamento }}</h3>
+                    </div>
+                    <i class="bi bi-tools stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stats success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Concluídos (Mês)</p>
+                        <h3 class="mb-0">{{ stats.concluidos_mes }}</h3>
+                    </div>
+                    <i class="bi bi-check-circle stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stats primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Meus Serviços</p>
+                        <h3 class="mb-0">{{ stats.total_servicos }}</h3>
+                    </div>
+                    <i class="bi bi-list-check stat-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-task"></i> Serviços em Atendimento</h5>
+    </div>
+    <div class="card-body">
+        {% if servicos %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Veículo</th>
+                        <th>Descrição</th>
+                        <th>Status</th>
+                        <th>Data Entrada</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for servico in servicos %}
+                    <tr>
+                        <td>{{ servico.veiculo.dono.nome }}</td>
+                        <td>{{ servico.veiculo.modelo }} - {{ servico.veiculo.placa }}</td>
+                        <td>{{ servico.descricao[:40] }}...</td>
+                        <td>
+                            <span class="badge bg-{{ servico.status_class }}">
+                                {{ servico.status_display }}
+                            </span>
+                        </td>
+                        <td>{{ servico.data_entrada.strftime('%d/%m/%Y') }}</td>
+                        <td class="table-actions">
+                            <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
+                                class="btn btn-sm btn-info btn-icon" title="Ver detalhes">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if servico.status == 'aguardando_orcamento' %}
+                            <a href="{{ url_for('views.orcamento_create', servico_id=servico.id) }}"
+                                class="btn btn-sm btn-primary btn-icon" title="Criar orçamento">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </a>
+                            {% elif servico.status == 'orcamento_aprovado' %}
+                            <button onclick="iniciarServico({{ servico.id }})" class="btn btn-sm btn-success btn-icon"
+                                title="Iniciar serviço">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            {% elif servico.status == 'em_andamento' %}
+                            <button onclick="concluirServico({{ servico.id }})" class="btn btn-sm btn-success btn-icon"
+                                title="Concluir serviço">
+                                <i class="bi bi-check2"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted py-4">Nenhum serviço em atendimento</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function iniciarServico(id) {
+        if (confirm('Confirma o início deste serviço?')) {
+            fetch(`/api/servicos/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify({ status: 'em_andamento' })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro ao atualizar serviço');
+                    }
+                });
+        }
+    }
+
+    function concluirServico(id) {
+        if (confirm('Confirma a conclusão deste serviço?')) {
+            fetch(`/api/servicos/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify({ status: 'concluido' })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro ao atualizar serviço');
+                    }
+                });
+        }
+    }
+</script>
+{% endblock %}

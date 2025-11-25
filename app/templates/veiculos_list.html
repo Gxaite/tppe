@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Veículos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-car-front"></i> Meus Veículos</h2>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Novo Veículo
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if veiculos %}
+        <div class="row">
+            {% for veiculo in veiculos %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ veiculo.marca }} {{ veiculo.modelo }}</h5>
+                        <p class="card-text">
+                            <strong>Placa:</strong> {{ veiculo.placa }}<br>
+                            <strong>Ano:</strong> {{ veiculo.ano }}<br>
+                            <strong>Cor:</strong> {{ veiculo.cor }}
+                        </p>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('views.veiculo_detail', id=veiculo.id) }}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                            <a href="{{ url_for('views.veiculo_edit', id=veiculo.id) }}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <form method="POST" action="{{ url_for('views.veiculo_delete', id=veiculo.id) }}"
+                                onsubmit="return confirmDelete('Deseja excluir este veículo?')" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i> Excluir
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-car-front" style="font-size: 4rem; opacity: 0.3;"></i>
+            <p class="text-muted mt-3">Nenhum veículo cadastrado</p>
+            <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Cadastrar primeiro veículo
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
