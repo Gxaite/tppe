@@ -13,7 +13,7 @@ def listar_veiculos():
         veiculos = Veiculo.query.all()
     else:
         veiculos = Veiculo.query.filter_by(usuario_id=request.usuario_id).all()
-    
+
     return jsonify({
         'veiculos': [v.to_dict() for v in veiculos],
         'total': len(veiculos)
@@ -27,11 +27,11 @@ def obter_veiculo(veiculo_id):
     veiculo = Veiculo.query.get(veiculo_id)
     if not veiculo:
         return jsonify({'message': 'Veículo não encontrado'}), 404
-    
+
     # Verificar permissão
     if request.tipo_usuario != 'gerente' and veiculo.usuario_id != request.usuario_id:
         return jsonify({'message': 'Acesso negado'}), 403
-    
+
     return jsonify(veiculo.to_dict(include_servicos=True)), 200
 
 
@@ -41,19 +41,19 @@ def obter_veiculo(veiculo_id):
 def criar_veiculo():
     """Cria um novo veículo"""
     data = request.get_json()
-    
+
     if not data:
         return jsonify({'message': 'Dados não fornecidos'}), 400
-    
+
     campos_obrigatorios = ['placa', 'modelo', 'marca', 'ano']
     for campo in campos_obrigatorios:
         if campo not in data:
             return jsonify({'message': f'Campo {campo} é obrigatório'}), 400
-    
+
     # Verificar se placa já existe
     if Veiculo.query.filter_by(placa=data['placa']).first():
         return jsonify({'message': 'Placa já cadastrada'}), 409
-    
+
     # Determinar dono do veículo
     if request.tipo_usuario == 'gerente' and 'usuario_id' in data:
         # Gerente pode criar veículo para qualquer usuário
@@ -63,7 +63,7 @@ def criar_veiculo():
     else:
         # Cliente cria para si mesmo
         usuario_id = request.usuario_id
-    
+
     # Criar veículo
     veiculo = Veiculo(
         placa=data['placa'].upper(),
@@ -72,11 +72,11 @@ def criar_veiculo():
         ano=data['ano'],
         usuario_id=usuario_id
     )
-    
+
     try:
         db.session.add(veiculo)
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Veículo cadastrado com sucesso',
             'veiculo': veiculo.to_dict()
@@ -93,15 +93,15 @@ def atualizar_veiculo(veiculo_id):
     veiculo = Veiculo.query.get(veiculo_id)
     if not veiculo:
         return jsonify({'message': 'Veículo não encontrado'}), 404
-    
+
     # Verificar permissão
     if request.tipo_usuario != 'gerente' and veiculo.usuario_id != request.usuario_id:
         return jsonify({'message': 'Acesso negado'}), 403
-    
+
     data = request.get_json()
     if not data:
         return jsonify({'message': 'Dados não fornecidos'}), 400
-    
+
     # Atualizar campos
     if 'placa' in data:
         # Verificar se placa já existe para outro veículo
@@ -109,16 +109,16 @@ def atualizar_veiculo(veiculo_id):
         if veiculo_existente and veiculo_existente.id != veiculo_id:
             return jsonify({'message': 'Placa já cadastrada'}), 409
         veiculo.placa = data['placa'].upper()
-    
+
     if 'modelo' in data:
         veiculo.modelo = data['modelo']
-    
+
     if 'marca' in data:
         veiculo.marca = data['marca']
-    
+
     if 'ano' in data:
         veiculo.ano = data['ano']
-    
+
     try:
         db.session.commit()
         return jsonify({
@@ -137,11 +137,11 @@ def deletar_veiculo(veiculo_id):
     veiculo = Veiculo.query.get(veiculo_id)
     if not veiculo:
         return jsonify({'message': 'Veículo não encontrado'}), 404
-    
+
     # Verificar permissão
     if request.tipo_usuario != 'gerente' and veiculo.usuario_id != request.usuario_id:
         return jsonify({'message': 'Acesso negado'}), 403
-    
+
     try:
         db.session.delete(veiculo)
         db.session.commit()

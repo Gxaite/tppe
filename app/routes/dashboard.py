@@ -9,7 +9,7 @@ bp = Blueprint('dashboard', __name__)
 @token_required
 def dashboard():
     """Retorna dashboard baseado no tipo de usuário"""
-    
+
     if request.tipo_usuario == 'gerente':
         return dashboard_gerente()
     elif request.tipo_usuario == 'mecanico':
@@ -25,17 +25,17 @@ def dashboard_gerente():
     total_mecanicos = Usuario.query.filter_by(tipo='mecanico').count()
     total_veiculos = Veiculo.query.count()
     total_servicos = Servico.query.count()
-    
+
     # Serviços por status
     pendentes = Servico.query.filter_by(status=StatusServico.PENDENTE).count()
     em_andamento = Servico.query.filter_by(status=StatusServico.EM_ANDAMENTO).count()
     concluidos = Servico.query.filter_by(status=StatusServico.CONCLUIDO).count()
-    
+
     # Serviços ativos (últimos 10)
     servicos_ativos = Servico.query.filter(
         Servico.status.in_([StatusServico.PENDENTE, StatusServico.EM_ANDAMENTO])
     ).order_by(Servico.criado_em.desc()).limit(10).all()
-    
+
     return jsonify({
         'tipo_usuario': 'gerente',
         'estatisticas': {
@@ -55,12 +55,12 @@ def dashboard_mecanico():
     """Dashboard para mecânico"""
     # Serviços atribuídos
     meus_servicos = Servico.query.filter_by(mecanico_id=request.usuario_id).all()
-    
+
     # Por status
     pendentes = [s for s in meus_servicos if s.status == StatusServico.PENDENTE]
     em_andamento = [s for s in meus_servicos if s.status == StatusServico.EM_ANDAMENTO]
     concluidos = [s for s in meus_servicos if s.status == StatusServico.CONCLUIDO]
-    
+
     return jsonify({
         'tipo_usuario': 'mecanico',
         'estatisticas': {
@@ -78,15 +78,15 @@ def dashboard_cliente():
     # Veículos do cliente
     meus_veiculos = Veiculo.query.filter_by(usuario_id=request.usuario_id).all()
     veiculos_ids = [v.id for v in meus_veiculos]
-    
+
     # Serviços dos veículos
     meus_servicos = Servico.query.filter(Servico.veiculo_id.in_(veiculos_ids)).all()
-    
+
     # Por status
     pendentes = [s for s in meus_servicos if s.status == StatusServico.PENDENTE]
     em_andamento = [s for s in meus_servicos if s.status == StatusServico.EM_ANDAMENTO]
     concluidos = [s for s in meus_servicos if s.status == StatusServico.CONCLUIDO]
-    
+
     return jsonify({
         'tipo_usuario': 'cliente',
         'estatisticas': {

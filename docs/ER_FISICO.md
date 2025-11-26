@@ -1,62 +1,138 @@
-# Diagrama Entidade-Relacionamento Físico
+# Modelo Entidade-Relacionamento Físico - Sistema Oficina Mecânica
 
 ## Visão Geral
-Este documento descreve o modelo físico do banco de dados PostgreSQL do sistema de oficina mecânica.
 
-## Diagrama ER
+Este documento descreve o modelo físico do banco de dados PostgreSQL 15 do sistema de gerenciamento de oficina mecânica.
+
+| Aspecto | Descrição |
+|---------|-----------|
+| **SGBD** | PostgreSQL 15 |
+| **Normalização** | 3ª Forma Normal (3NF) |
+| **Tabelas** | 4 (Usuario, Veiculo, Servico, Orcamento) |
+| **ORM** | SQLAlchemy 2.0 |
+
+---
+
+## Diagrama ER Completo
 
 ```mermaid
 erDiagram
-    USUARIO ||--o{ VEICULO : possui
-    USUARIO ||--o{ SERVICO : realiza
-    VEICULO ||--o{ SERVICO : recebe
-    SERVICO ||--o{ ORCAMENTO : tem
+    USUARIO ||--o{ VEICULO : "possui (1:N)"
+    USUARIO ||--o{ SERVICO : "atende como mecânico (1:N)"
+    VEICULO ||--o{ SERVICO : "recebe (1:N)"
+    SERVICO ||--o{ ORCAMENTO : "tem (1:N)"
 
     USUARIO {
-        int id PK
-        varchar(100) nome
-        varchar(120) email UK
-        varchar(20) telefone
-        varchar(200) senha_hash
-        enum tipo_usuario
-        timestamp data_cadastro
+        serial id PK "Identificador único"
+        varchar_100 nome "Nome completo"
+        varchar_120 email UK "Email único para login"
+        varchar_20 telefone "Telefone de contato"
+        varchar_200 endereco "Endereço completo"
+        varchar_255 senha_hash "Senha bcrypt"
+        enum tipo "cliente|mecanico|gerente"
+        timestamp data_cadastro "DEFAULT NOW()"
     }
 
     VEICULO {
-        int id PK
-        varchar(50) marca
-        varchar(50) modelo
-        int ano
-        varchar(10) placa UK
-        varchar(30) cor
-        int dono_id FK
-        timestamp data_cadastro
+        serial id PK "Identificador único"
+        varchar_10 placa UK "Placa do veículo"
+        varchar_50 modelo "Modelo do veículo"
+        varchar_50 marca "Marca do veículo"
+        integer ano "Ano de fabricação"
+        varchar_30 cor "Cor do veículo"
+        integer usuario_id FK "Referência ao dono"
+        timestamp criado_em "DEFAULT NOW()"
     }
 
     SERVICO {
-        int id PK
-        int veiculo_id FK
-        int mecanico_responsavel_id FK
-        text descricao
-        text observacoes
-        enum status
-        decimal(10,2) valor_mao_obra
-        decimal(10,2) valor_pecas
-        decimal(10,2) valor_total
-        date data_entrada
-        date data_previsao
-        date data_conclusao
+        serial id PK "Identificador único"
+        integer veiculo_id FK "Referência ao veículo"
+        integer mecanico_id FK "Referência ao mecânico"
+        text descricao "Descrição do serviço"
+        text observacoes "Observações adicionais"
+        enum status "Status atual"
+        decimal_10_2 valor "Valor total"
+        timestamp criado_em "Data de criação"
+        timestamp atualizado_em "Última atualização"
+        timestamp data_previsao "Previsão de conclusão"
+        timestamp data_conclusao "Data efetiva"
     }
 
     ORCAMENTO {
-        int id PK
-        int servico_id FK
-        decimal(10,2) valor_mao_obra
-        decimal(10,2) valor_pecas
-        decimal(10,2) valor_total
-        boolean aprovado
-        timestamp data_orcamento
+        serial id PK "Identificador único"
+        integer servico_id FK "Referência ao serviço"
+        text descricao "Descrição do orçamento"
+        decimal_10_2 valor "Valor orçado"
+        timestamp criado_em "DEFAULT NOW()"
     }
+```
+
+---
+
+## Diagrama de Relacionamentos
+
+```mermaid
+flowchart TB
+    subgraph Usuarios["👥 Usuários"]
+        Cliente["Cliente<br/>tipo='cliente'"]
+        Mecanico["Mecânico<br/>tipo='mecanico'"]
+        Gerente["Gerente<br/>tipo='gerente'"]
+    end
+
+    subgraph Veiculos["🚗 Veículos"]
+        V1["Veículo 1"]
+        V2["Veículo 2"]
+        V3["Veículo N"]
+    end
+
+    subgraph Servicos["🔧 Serviços"]
+        S1["Serviço 1"]
+        S2["Serviço 2"]
+        S3["Serviço N"]
+    end
+
+    subgraph Orcamentos["💰 Orçamentos"]
+        O1["Orçamento 1"]
+        O2["Orçamento 2"]
+        O3["Orçamento N"]
+    end
+
+    Cliente -->|possui| V1
+    Cliente -->|possui| V2
+    V1 -->|recebe| S1
+    V2 -->|recebe| S2
+    V3 -->|recebe| S3
+    Mecanico -->|atende| S1
+    Mecanico -->|atende| S2
+    S1 -->|tem| O1
+    S2 -->|tem| O2
+    S3 -->|tem| O3
+```
+
+---
+
+## Fluxo de Estados do Serviço
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDENTE: Serviço criado
+
+    PENDENTE --> AGUARDANDO_ORCAMENTO: Cliente solicita orçamento
+    AGUARDANDO_ORCAMENTO --> ORCAMENTO_APROVADO: Cliente aprova
+    AGUARDANDO_ORCAMENTO --> CANCELADO: Cliente recusa
+
+    ORCAMENTO_APROVADO --> EM_ANDAMENTO: Mecânico inicia
+    EM_ANDAMENTO --> CONCLUIDO: Mecânico finaliza
+    EM_ANDAMENTO --> CANCELADO: Problema/desistência
+
+    PENDENTE --> CANCELADO: Desistência
+
+    CONCLUIDO --> [*]
+    CANCELADO --> [*]
+
+    note right of PENDENTE : Status inicial
+    note right of CONCLUIDO : Serviço finalizado
+    note right of CANCELADO : Serviço cancelado
 ```
 
 ## Estrutura Detalhada das Tabelas

@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta
 import jwt
 from functools import wraps
@@ -41,7 +40,7 @@ def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
-        
+
         # Pegar token do header Authorization
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
@@ -49,21 +48,21 @@ def token_required(f):
                 token = auth_header.split(' ')[1]  # Bearer <token>
             except IndexError:
                 return jsonify({'message': 'Token inválido'}), 401
-        
+
         if not token:
             return jsonify({'message': 'Token não fornecido'}), 401
-        
+
         # Decodificar token
         payload = decodificar_token(token)
         if not payload:
             return jsonify({'message': 'Token inválido ou expirado'}), 401
-        
+
         # Adicionar dados do usuário ao request
         request.usuario_id = payload['usuario_id']
         request.tipo_usuario = payload['tipo']
-        
+
         return f(*args, **kwargs)
-    
+
     return decorated
 
 
@@ -74,12 +73,12 @@ def requer_tipo_usuario(*tipos_permitidos):
         def decorated(*args, **kwargs):
             if not hasattr(request, 'tipo_usuario'):
                 return jsonify({'message': 'Autenticação necessária'}), 401
-            
+
             if request.tipo_usuario not in tipos_permitidos:
                 return jsonify({'message': 'Acesso negado para este tipo de usuário'}), 403
-            
+
             return f(*args, **kwargs)
-        
+
         return decorated
-    
+
     return decorator

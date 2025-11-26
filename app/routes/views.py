@@ -37,24 +37,24 @@ def tipo_usuario_required(*tipos_permitidos):
 def login():
     if 'user_id' in session:
         return redirect(url_for('views.dashboard'))
-    
+
     if request.method == 'POST':
         email = request.form.get('email')
         senha = request.form.get('senha')
-        
+
         usuario = Usuario.query.filter_by(email=email).first()
-        
+
         if usuario and usuario.verificar_senha(senha):
             session['user_id'] = usuario.id
             session['nome'] = usuario.nome
             session['email'] = usuario.email
             session['tipo_usuario'] = usuario.tipo.value
-            
+
             flash(f'Bem-vindo, {usuario.nome}!', 'success')
             return redirect(url_for('views.dashboard'))
         else:
             flash('Email ou senha inválidos', 'danger')
-    
+
     return render_template('login.html')
 
 
@@ -62,23 +62,22 @@ def login():
 def register():
     if 'user_id' in session:
         return redirect(url_for('views.dashboard'))
-    
+
     if request.method == 'POST':
         nome = request.form.get('nome')
         email = request.form.get('email')
-        telefone = request.form.get('telefone')
         senha = request.form.get('senha')
         tipo_usuario = request.form.get('tipo_usuario')
-        
+
         # Validações
         if Usuario.query.filter_by(email=email).first():
             flash('Email já cadastrado', 'danger')
             return render_template('register.html')
-        
+
         if tipo_usuario not in ['cliente', 'mecanico']:
             flash('Tipo de usuário inválido', 'danger')
             return render_template('register.html')
-        
+
         # Criar usuário
         usuario = Usuario(
             nome=nome,
@@ -86,13 +85,13 @@ def register():
             tipo=tipo_usuario
         )
         usuario.set_senha(senha)
-        
+
         db.session.add(usuario)
         db.session.commit()
-        
+
         flash('Cadastro realizado com sucesso! Faça login.', 'success')
         return redirect(url_for('views.login'))
-    
+
     return render_template('register.html')
 
 
@@ -110,7 +109,7 @@ def logout():
 def dashboard():
     tipo_usuario = session.get('tipo_usuario')
     user_id = session.get('user_id')
-    
+
     if tipo_usuario == 'cliente':
         return dashboard_cliente(user_id)
     elif tipo_usuario == 'mecanico':
@@ -124,7 +123,7 @@ def dashboard():
 
 def dashboard_cliente(user_id):
     veiculos = Veiculo.query.filter_by(usuario_id=user_id).all()
-    
+
     # Estatísticas
     stats = {
         'total_veiculos': len(veiculos),
@@ -137,16 +136,18 @@ def dashboard_cliente(user_id):
             Servico.status == StatusServico.CONCLUIDO
         ).count()
     }
-    
+
     # Serviços recentes
     servicos = Servico.query.join(Veiculo).filter(
         Veiculo.usuario_id == user_id
     ).order_by(Servico.criado_em.desc()).limit(10).all()
-    
-    return render_template('dashboard_cliente.html', 
-                         stats=stats, 
-                         veiculos=veiculos[:5], 
-                         servicos=servicos)
+
+    return render_template(
+        'dashboard_cliente.html',
+        stats=stats,
+        veiculos=veiculos[:5],
+        servicos=servicos
+    )
 
 
 def dashboard_mecanico(user_id):
@@ -166,7 +167,7 @@ def dashboard_mecanico(user_id):
         ).count(),
         'total_servicos': Servico.query.filter_by(mecanico_id=user_id).count()
     }
-    
+
     # Serviços em atendimento
     servicos = Servico.query.filter_by(mecanico_id=user_id).filter(
         Servico.status.in_([
@@ -175,7 +176,7 @@ def dashboard_mecanico(user_id):
             StatusServico.EM_ANDAMENTO
         ])
     ).order_by(Servico.criado_em.desc()).all()
-    
+
     return render_template('dashboard_mecanico.html', stats=stats, servicos=servicos)
 
 
@@ -200,7 +201,7 @@ def dashboard_gerente():
         'status_andamento': Servico.query.filter_by(status=StatusServico.EM_ANDAMENTO).count(),
         'status_concluido': Servico.query.filter_by(status=StatusServico.CONCLUIDO).count()
     }
-    
+
     # Estatísticas por mecânico
     mecanicos = Usuario.query.filter_by(tipo=TipoUsuario.MECANICO).all()
     mecanicos_stats = []
@@ -224,14 +225,16 @@ def dashboard_gerente():
             ).count(),
             'total': Servico.query.filter_by(mecanico_id=mecanico.id).count()
         })
-    
+
     # Serviços recentes
     servicos = Servico.query.order_by(Servico.criado_em.desc()).limit(15).all()
-    
-    return render_template('dashboard_gerente.html', 
-                         stats=stats, 
-                         mecanicos_stats=mecanicos_stats,
-                         servicos=servicos)
+
+    return render_template(
+        'dashboard_gerente.html',
+        stats=stats,
+        mecanicos_stats=mecanicos_stats,
+        servicos=servicos
+    )
 
 
 # ============= Veículos =============
@@ -243,7 +246,7 @@ def veiculos_list():
         veiculos = Veiculo.query.filter_by(usuario_id=session.get('user_id')).all()
     else:
         veiculos = Veiculo.query.all()
-    
+
     return render_template('veiculos_list.html', veiculos=veiculos)
 
 
@@ -252,12 +255,12 @@ def veiculos_list():
 def veiculo_create():
     if request.method == 'POST':
         placa = request.form.get('placa').upper()
-        
+
         # Verificar se placa já existe
         if Veiculo.query.filter_by(placa=placa).first():
             flash('Placa já cadastrada no sistema!', 'danger')
             return render_template('veiculo_form.html', veiculo=None)
-        
+
         veiculo = Veiculo(
             marca=request.form.get('marca'),
             modelo=request.form.get('modelo'),
@@ -266,13 +269,13 @@ def veiculo_create():
             cor=request.form.get('cor'),
             usuario_id=session.get('user_id')
         )
-        
+
         db.session.add(veiculo)
         db.session.commit()
-        
+
         flash('Veículo cadastrado com sucesso!', 'success')
         return redirect(url_for('views.veiculos_list'))
-    
+
     return render_template('veiculo_form.html', veiculo=None)
 
 
@@ -280,14 +283,14 @@ def veiculo_create():
 @login_required
 def veiculo_detail(id):
     veiculo = Veiculo.query.get_or_404(id)
-    
+
     # Verificar permissão
     if session.get('tipo_usuario') == 'cliente' and veiculo.usuario_id != session.get('user_id'):
         flash('Você não tem permissão para ver este veículo', 'danger')
         return redirect(url_for('views.veiculos_list'))
-    
+
     servicos = Servico.query.filter_by(veiculo_id=id).order_by(Servico.criado_em.desc()).all()
-    
+
     return render_template('veiculo_detail.html', veiculo=veiculo, servicos=servicos)
 
 
@@ -295,24 +298,24 @@ def veiculo_detail(id):
 @login_required
 def veiculo_edit(id):
     veiculo = Veiculo.query.get_or_404(id)
-    
+
     # Verificar permissão
     if session.get('tipo_usuario') == 'cliente' and veiculo.usuario_id != session.get('user_id'):
         flash('Você não tem permissão para editar este veículo', 'danger')
         return redirect(url_for('views.veiculos_list'))
-    
+
     if request.method == 'POST':
         veiculo.marca = request.form.get('marca')
         veiculo.modelo = request.form.get('modelo')
         veiculo.ano = int(request.form.get('ano'))
         veiculo.placa = request.form.get('placa').upper()
         veiculo.cor = request.form.get('cor')
-        
+
         db.session.commit()
-        
+
         flash('Veículo atualizado com sucesso!', 'success')
         return redirect(url_for('views.veiculo_detail', id=id))
-    
+
     return render_template('veiculo_form.html', veiculo=veiculo)
 
 
@@ -320,20 +323,20 @@ def veiculo_edit(id):
 @login_required
 def veiculo_delete(id):
     veiculo = Veiculo.query.get_or_404(id)
-    
+
     # Verificar permissão
     if session.get('tipo_usuario') == 'cliente' and veiculo.usuario_id != session.get('user_id'):
         flash('Você não tem permissão para excluir este veículo', 'danger')
         return redirect(url_for('views.veiculos_list'))
-    
+
     # Verificar se há serviços
     if veiculo.servicos:
         flash('Não é possível excluir um veículo com serviços cadastrados', 'danger')
         return redirect(url_for('views.veiculo_detail', id=id))
-    
+
     db.session.delete(veiculo)
     db.session.commit()
-    
+
     flash('Veículo excluído com sucesso!', 'success')
     return redirect(url_for('views.veiculos_list'))
 
@@ -345,7 +348,7 @@ def veiculo_delete(id):
 def servicos_list():
     tipo_usuario = session.get('tipo_usuario')
     user_id = session.get('user_id')
-    
+
     if tipo_usuario == 'cliente':
         servicos = Servico.query.join(Veiculo).filter(
             Veiculo.usuario_id == user_id
@@ -356,7 +359,7 @@ def servicos_list():
         ).order_by(Servico.criado_em.desc()).all()
     else:  # gerente
         servicos = Servico.query.order_by(Servico.criado_em.desc()).all()
-    
+
     return render_template('servicos_list.html', servicos=servicos)
 
 
@@ -367,33 +370,33 @@ def servico_solicitar():
     """Permite que clientes solicitem um orçamento/serviço"""
     if request.method == 'POST':
         veiculo_id = request.form.get('veiculo_id')
-        
+
         # Verificar se veículo pertence ao cliente
         veiculo = Veiculo.query.get_or_404(veiculo_id)
         if veiculo.usuario_id != session.get('user_id'):
             flash('Você não tem permissão para solicitar serviço para este veículo', 'danger')
             return redirect(url_for('views.servicos_list'))
-        
+
         servico = Servico(
             veiculo_id=int(veiculo_id),
             descricao=request.form.get('descricao'),
             observacoes=request.form.get('observacoes'),
             status=StatusServico.AGUARDANDO_ORCAMENTO
         )
-        
+
         db.session.add(servico)
         db.session.commit()
-        
+
         flash('Solicitação de orçamento enviada com sucesso! Aguarde nosso retorno.', 'success')
         return redirect(url_for('views.servicos_list'))
-    
+
     # GET - Listar apenas veículos do cliente
     veiculos = Veiculo.query.filter_by(usuario_id=session.get('user_id')).all()
-    
+
     if not veiculos:
         flash('Você precisa cadastrar um veículo antes de solicitar um serviço.', 'warning')
         return redirect(url_for('views.veiculo_create'))
-    
+
     return render_template('servico_solicitar.html', veiculos=veiculos)
 
 
@@ -408,54 +411,56 @@ def servico_create():
             observacoes=request.form.get('observacoes'),
             status=StatusServico[request.form.get('status', 'AGUARDANDO_ORCAMENTO').upper()]
         )
-        
+
         # Data de entrada (criado_em) será automaticamente definida pelo model
-        
+
         if request.form.get('data_previsao'):
             servico.data_previsao = datetime.strptime(request.form.get('data_previsao'), '%Y-%m-%d')
-        
+
         if request.form.get('mecanico_id'):
             servico.mecanico_id = int(request.form.get('mecanico_id'))
-        
+
         db.session.add(servico)
         db.session.commit()
-        
+
         flash('Serviço cadastrado com sucesso!', 'success')
         return redirect(url_for('views.servicos_list'))
-    
+
     # GET
     if session.get('tipo_usuario') == 'cliente':
         veiculos = Veiculo.query.filter_by(usuario_id=session.get('user_id')).all()
     else:
         veiculos = Veiculo.query.all()
-    
+
     mecanicos = Usuario.query.filter_by(tipo=TipoUsuario.MECANICO).all()
-    
-    return render_template('servico_form.html', 
-                         servico=None, 
-                         veiculos=veiculos, 
-                         mecanicos=mecanicos)
+
+    return render_template(
+        'servico_form.html',
+        servico=None,
+        veiculos=veiculos,
+        mecanicos=mecanicos
+    )
 
 
 @bp.route('/servicos/<int:id>')
 @login_required
 def servico_detail(id):
     servico = Servico.query.get_or_404(id)
-    
+
     # Verificar permissão
     tipo_usuario = session.get('tipo_usuario')
     user_id = session.get('user_id')
-    
+
     if tipo_usuario == 'cliente' and servico.veiculo.usuario_id != user_id:
         flash('Você não tem permissão para ver este serviço', 'danger')
         return redirect(url_for('views.servicos_list'))
-    
+
     if tipo_usuario == 'mecanico' and servico.mecanico_id != user_id:
         flash('Você não tem permissão para ver este serviço', 'danger')
         return redirect(url_for('views.servicos_list'))
-    
+
     orcamentos = Orcamento.query.filter_by(servico_id=id).order_by(Orcamento.criado_em.desc()).all()
-    
+
     return render_template('servico_detail.html', servico=servico, orcamentos=orcamentos)
 
 
@@ -464,31 +469,33 @@ def servico_detail(id):
 @tipo_usuario_required('mecanico', 'gerente')
 def servico_edit(id):
     servico = Servico.query.get_or_404(id)
-    
+
     if request.method == 'POST':
         servico.veiculo_id = int(request.form.get('veiculo_id'))
         servico.descricao = request.form.get('descricao')
         servico.observacoes = request.form.get('observacoes')
         servico.status = StatusServico[request.form.get('status').upper()]
-        
+
         if request.form.get('data_previsao'):
             servico.data_previsao = datetime.strptime(request.form.get('data_previsao'), '%Y-%m-%d')
-        
+
         if request.form.get('mecanico_id'):
             servico.mecanico_id = int(request.form.get('mecanico_id'))
-        
+
         db.session.commit()
-        
+
         flash('Serviço atualizado com sucesso!', 'success')
         return redirect(url_for('views.servico_detail', id=id))
-    
+
     veiculos = Veiculo.query.all()
     mecanicos = Usuario.query.filter_by(tipo=TipoUsuario.MECANICO).all()
-    
-    return render_template('servico_form.html', 
-                         servico=servico, 
-                         veiculos=veiculos, 
-                         mecanicos=mecanicos)
+
+    return render_template(
+        'servico_form.html',
+        servico=servico,
+        veiculos=veiculos,
+        mecanicos=mecanicos
+    )
 
 
 @bp.route('/orcamentos/novo', methods=['GET', 'POST'])
@@ -497,31 +504,31 @@ def servico_edit(id):
 def orcamento_create():
     servico_id = request.args.get('servico_id')
     servico = Servico.query.get_or_404(servico_id)
-    
+
     if request.method == 'POST':
         # Suporta ambos os formatos: valor único ou separado
         valor_mao_obra = float(request.form.get('valor_mao_obra', 0) or 0)
         valor_pecas = float(request.form.get('valor_pecas', 0) or 0)
         valor = float(request.form.get('valor', 0) or 0)
-        
+
         # Se valor não foi enviado, calcula a partir dos componentes
         if valor == 0 and (valor_mao_obra > 0 or valor_pecas > 0):
             valor = valor_mao_obra + valor_pecas
-        
+
         descricao = request.form.get('descricao', '')
-        
+
         orcamento = Orcamento(
             servico_id=servico.id,
             descricao=descricao,
             valor=valor
         )
-        
+
         db.session.add(orcamento)
         db.session.commit()
-        
+
         flash('Orçamento criado com sucesso!', 'success')
         return redirect(url_for('views.servico_detail', id=servico.id))
-    
+
     return redirect(url_for('views.servico_detail', id=servico.id))
 
 
@@ -531,17 +538,17 @@ def orcamento_create():
 def orcamento_approve(id):
     orcamento = Orcamento.query.get_or_404(id)
     servico = orcamento.servico
-    
+
     # Verificar se é o dono do veículo
     if servico.veiculo.usuario_id != session.get('user_id'):
         flash('Você não tem permissão para aprovar este orçamento', 'danger')
         return redirect(url_for('views.servicos_list'))
-    
+
     servico.status = StatusServico.ORCAMENTO_APROVADO
     servico.valor = orcamento.valor
-    
+
     db.session.commit()
-    
+
     flash('Orçamento aprovado com sucesso!', 'success')
     return redirect(url_for('views.servico_detail', id=servico.id))
 
@@ -568,13 +575,13 @@ def usuario_create():
             tipo_usuario=request.form.get('tipo_usuario')
         )
         usuario.definir_senha(request.form.get('senha'))
-        
+
         db.session.add(usuario)
         db.session.commit()
-        
+
         flash('Usuário cadastrado com sucesso!', 'success')
         return redirect(url_for('views.usuarios_list'))
-    
+
     return render_template('usuario_form.html', usuario=None)
 
 
