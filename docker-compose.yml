@@ -30,6 +30,7 @@ services:
       FLASK_ENV: development
       TEMPLATES_FOLDER: /app/templates
       STATIC_FOLDER: /app/static
+      SELENIUM_URL: http://selenium:4444/wd/hub
     ports:
       - "5000:5000"
     volumes:
@@ -42,6 +43,16 @@ services:
     networks:
       - mecanica_network
     command: flask run --host=0.0.0.0
+
+  selenium:
+    image: selenium/standalone-chrome:latest
+    container_name: mecanica_selenium
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    shm_size: 2gb
+    networks:
+      - mecanica_network
 
 volumes:
   postgres_data:
