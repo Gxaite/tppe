@@ -1,226 +1,110 @@
 {% extends "base.html" %}
 
-{% block title %}Veículos{% endblock %}
+{% block title %}Veículos - AutoPro{% endblock %}
+{% block breadcrumb %}Veículos{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <div class="page-header-content">
-        <h1 class="page-title">
-            <i class="bi bi-car-front"></i>
-            Meus Veículos
-        </h1>
-        <p class="page-subtitle">Gerencie os veículos cadastrados na sua conta</p>
+    <div class="page-title-section">
+        <h1><i class="bi bi-car-front-fill text-primary"></i> Meus Veículos</h1>
+        <p>Gerencie os veículos cadastrados na sua conta</p>
     </div>
     <div class="page-actions">
         <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Novo Veículo
+            <i class="bi bi-plus-lg"></i> Novo Veículo
         </a>
     </div>
 </div>
 
 {% if veiculos %}
-<div class="row g-4">
+<div class="vehicles-grid">
     {% for veiculo in veiculos %}
-    <div class="col-md-6 col-xl-4">
-        <div class="card vehicle-card h-100">
-            <div class="card-body">
-                <div class="vehicle-header">
-                    <div class="vehicle-icon">
-                        <i class="bi bi-car-front-fill"></i>
-                    </div>
-                    <div class="vehicle-info">
-                        <h4 class="vehicle-title">{{ veiculo.marca }} {{ veiculo.modelo }}</h4>
-                        <span class="vehicle-plate">{{ veiculo.placa }}</span>
-                    </div>
-                </div>
+    <div class="vehicle-card animate-fade-in">
+        <div class="vehicle-card-header">
+            <i class="bi bi-car-front-fill vehicle-icon"></i>
+            <div class="vehicle-plate">{{ veiculo.placa }}</div>
+            <div class="vehicle-model">{{ veiculo.marca }} {{ veiculo.modelo }}</div>
+        </div>
 
-                <div class="vehicle-details">
-                    <div class="detail-item">
-                        <span class="detail-label">Ano</span>
-                        <span class="detail-value">{{ veiculo.ano }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Cor</span>
-                        <span class="detail-value">
-                            <span class="color-dot"
-                                style="background: {{ veiculo.cor.lower() if veiculo.cor.lower() in ['preto', 'branco', 'prata', 'cinza', 'vermelho', 'azul', 'verde', 'amarelo'] else '#6b7280' }};"></span>
-                            {{ veiculo.cor }}
-                        </span>
-                    </div>
-                    {% if veiculo.servicos %}
-                    <div class="detail-item">
-                        <span class="detail-label">Serviços</span>
-                        <span class="detail-value">{{ veiculo.servicos|length }} registros</span>
-                    </div>
-                    {% endif %}
+        <div class="vehicle-card-body">
+            <div class="vehicle-details">
+                <div class="detail-item">
+                    <span class="detail-label">Ano</span>
+                    <span class="detail-value">{{ veiculo.ano }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Cor</span>
+                    <span class="detail-value">
+                        {% if veiculo.cor %}
+                        {% set cor_lower = veiculo.cor|lower %}
+                        {% set cores_map = {
+                        'preto': '#1a1a1a',
+                        'branco': '#ffffff',
+                        'prata': '#c0c0c0',
+                        'cinza': '#808080',
+                        'vermelho': '#dc2626',
+                        'azul': '#2563eb',
+                        'verde': '#16a34a',
+                        'amarelo': '#eab308'
+                        } %}
+                        <span class="color-dot" style="background: {{ cores_map.get(cor_lower, '#6b7280') }};"></span>
+                        {{ veiculo.cor }}
+                        {% else %}
+                        <span class="color-dot" style="background: #6b7280;"></span>
+                        Não informada
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Marca</span>
+                    <span class="detail-value">{{ veiculo.marca }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Serviços</span>
+                    <span class="detail-value">
+                        {% if veiculo.servicos %}
+                        {{ veiculo.servicos|length }} registro(s)
+                        {% else %}
+                        Nenhum
+                        {% endif %}
+                    </span>
                 </div>
             </div>
+        </div>
 
-            <div class="card-footer">
-                <div class="action-buttons">
-                    <a href="{{ url_for('views.veiculo_detail', id=veiculo.id) }}"
-                        class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-eye"></i> Detalhes
-                    </a>
-                    <a href="{{ url_for('views.veiculo_edit', id=veiculo.id) }}" class="btn btn-outline-warning btn-sm">
-                        <i class="bi bi-pencil"></i> Editar
-                    </a>
-                    <form method="POST" action="{{ url_for('views.veiculo_delete', id=veiculo.id) }}"
-                        onsubmit="return confirmDelete('Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.')"
-                        class="d-inline">
-                        <button type="submit" class="btn btn-outline-danger btn-sm">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
-                </div>
+        <div class="card-footer">
+            <div class="action-buttons">
+                <a href="{{ url_for('views.veiculo_detail', id=veiculo.id) }}" class="btn btn-sm btn-secondary">
+                    <i class="bi bi-eye"></i> Ver
+                </a>
+                <a href="{{ url_for('views.veiculo_edit', id=veiculo.id) }}" class="btn btn-sm btn-warning">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                <form method="POST" action="{{ url_for('views.veiculo_delete', id=veiculo.id) }}"
+                    onsubmit="return confirm('Tem certeza que deseja excluir este veículo?')" style="display: inline;">
+                    <button type="submit" class="btn btn-sm btn-danger">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
     {% endfor %}
 </div>
 {% else %}
-<div class="empty-state">
-    <div class="empty-state-icon">
-        <i class="bi bi-car-front"></i>
+<div class="card">
+    <div class="card-body">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-car-front"></i>
+            </div>
+            <h3>Nenhum veículo cadastrado</h3>
+            <p>Você ainda não possui veículos cadastrados. Adicione seu primeiro veículo para começar.</p>
+            <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-lg"></i> Cadastrar Veículo
+            </a>
+        </div>
     </div>
-    <h3 class="empty-state-title">Nenhum veículo cadastrado</h3>
-    <p class="empty-state-text">Você ainda não possui veículos cadastrados. Adicione seu primeiro veículo para solicitar
-        serviços.</p>
-    <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-primary btn-lg">
-        <i class="bi bi-plus-circle"></i> Cadastrar Primeiro Veículo
-    </a>
 </div>
 {% endif %}
-
-<style>
-    .vehicle-card {
-        border: none;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-sm);
-        transition: all 0.3s ease;
-    }
-
-    .vehicle-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .vehicle-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .vehicle-icon {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-        border-radius: var(--border-radius);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.5rem;
-    }
-
-    .vehicle-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--text-color);
-        margin: 0;
-    }
-
-    .vehicle-plate {
-        display: inline-block;
-        background: var(--secondary-color);
-        color: var(--text-color);
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px;
-        font-family: 'Courier New', monospace;
-        font-weight: 600;
-        font-size: 0.9rem;
-        letter-spacing: 1px;
-        margin-top: 0.25rem;
-    }
-
-    .vehicle-details {
-        display: grid;
-        gap: 0.75rem;
-    }
-
-    .detail-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .detail-label {
-        color: var(--text-muted);
-        font-size: 0.875rem;
-    }
-
-    .detail-value {
-        font-weight: 500;
-        color: var(--text-color);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .color-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    .vehicle-card .card-footer {
-        background: var(--secondary-color);
-        border-top: none;
-        padding: 1rem 1.25rem;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: white;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .empty-state-icon {
-        width: 100px;
-        height: 100px;
-        background: var(--secondary-color);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.5rem;
-        font-size: 2.5rem;
-        color: var(--text-muted);
-    }
-
-    .empty-state-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--text-color);
-        margin-bottom: 0.5rem;
-    }
-
-    .empty-state-text {
-        color: var(--text-muted);
-        max-width: 400px;
-        margin: 0 auto 1.5rem;
-    }
-</style>
 {% endblock %}

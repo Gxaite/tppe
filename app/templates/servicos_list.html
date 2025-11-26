@@ -25,6 +25,12 @@
             <i class="bi bi-plus-circle"></i> Novo Serviço
         </a>
     </div>
+    {% elif session.get('tipo_usuario') == 'cliente' %}
+    <div class="page-actions">
+        <a href="{{ url_for('views.servico_solicitar') }}" class="btn btn-primary">
+            <i class="bi bi-file-earmark-text"></i> Solicitar Orçamento
+        </a>
+    </div>
     {% endif %}
 </div>
 

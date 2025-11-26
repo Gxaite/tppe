@@ -1,110 +1,112 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sistema Oficina Mecânica{% endblock %}</title>
+    <title>{% block title %}AutoPro - Oficina Mecânica{% endblock %}</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <script>
+        // Load theme preference before page render
+        (function () {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 
 <body>
     {% if session.get('user_id') %}
     <div class="app-wrapper">
-        <!-- Sidebar Overlay (mobile) -->
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <i class="bi bi-gear-wide-connected"></i>
-                </div>
-                <div class="sidebar-brand">
-                    <h1>AutoPro</h1>
-                    <span>Oficina Mecânica</span>
-                </div>
+                <a href="{{ url_for('views.dashboard') }}" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i class="bi bi-car-front-fill"></i>
+                    </div>
+                    <div class="sidebar-logo-text">
+                        <span class="sidebar-logo-title">AutoPro</span>
+                        <span class="sidebar-logo-subtitle">Oficina Mecânica</span>
+                    </div>
+                </a>
             </div>
 
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <div class="nav-section-title">Principal</div>
-                    <div class="nav-item">
-                        <a href="{{ url_for('views.dashboard') }}"
-                            class="nav-link {{ 'active' if request.endpoint == 'views.dashboard' }}">
-                            <i class="bi bi-grid-1x2-fill"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </div>
+                    <a href="{{ url_for('views.dashboard') }}"
+                        class="nav-item {{ 'active' if request.endpoint == 'views.dashboard' else '' }}">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
                 </div>
 
                 {% if session.get('tipo_usuario') in ['cliente', 'mecanico', 'gerente'] %}
                 <div class="nav-section">
                     <div class="nav-section-title">Gerenciamento</div>
-                    <div class="nav-item">
-                        <a href="{{ url_for('views.veiculos_list') }}"
-                            class="nav-link {{ 'active' if 'veiculo' in request.endpoint|default('') }}">
-                            <i class="bi bi-car-front-fill"></i>
-                            <span>Veículos</span>
-                        </a>
-                    </div>
-                    {% if session.get('tipo_usuario') in ['cliente', 'mecanico', 'gerente'] %}
-                    <div class="nav-item">
-                        <a href="{{ url_for('views.servicos_list') }}"
-                            class="nav-link {{ 'active' if 'servico' in request.endpoint|default('') }}">
-                            <i class="bi bi-wrench-adjustable"></i>
-                            <span>Serviços</span>
-                        </a>
-                    </div>
-                    {% endif %}
+                    <a href="{{ url_for('views.veiculos_list') }}"
+                        class="nav-item {{ 'active' if 'veiculo' in request.endpoint|default('') else '' }}">
+                        <i class="bi bi-car-front-fill"></i>
+                        <span>Veículos</span>
+                    </a>
+                    <a href="{{ url_for('views.servicos_list') }}"
+                        class="nav-item {{ 'active' if 'servico' in request.endpoint|default('') else '' }}">
+                        <i class="bi bi-wrench-adjustable"></i>
+                        <span>Serviços</span>
+                    </a>
                 </div>
                 {% endif %}
 
                 {% if session.get('tipo_usuario') == 'gerente' %}
                 <div class="nav-section">
                     <div class="nav-section-title">Administração</div>
-                    <div class="nav-item">
-                        <a href="{{ url_for('views.usuarios_list') }}"
-                            class="nav-link {{ 'active' if 'usuario' in request.endpoint|default('') }}">
-                            <i class="bi bi-people-fill"></i>
-                            <span>Usuários</span>
-                        </a>
-                    </div>
+                    <a href="{{ url_for('views.usuarios_list') }}"
+                        class="nav-item {{ 'active' if 'usuario' in request.endpoint|default('') else '' }}">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Usuários</span>
+                    </a>
                 </div>
                 {% endif %}
             </nav>
 
             <div class="sidebar-footer">
-                <div class="user-profile">
+                <div class="user-info">
                     <div class="user-avatar">
                         {{ session.get('nome', 'U')[0]|upper }}
                     </div>
-                    <div class="user-info">
-                        <div class="user-name">{{ session.get('nome') }}</div>
+                    <div class="user-details">
+                        <div class="user-name">{{ session.get('nome', 'Usuário') }}</div>
                         <div class="user-role">
-                            {% if session.get('tipo_usuario') == 'gerente' %}
-                            <i class="bi bi-shield-check"></i> Gerente
-                            {% elif session.get('tipo_usuario') == 'mecanico' %}
-                            <i class="bi bi-tools"></i> Mecânico
-                            {% else %}
-                            <i class="bi bi-person"></i> Cliente
-                            {% endif %}
+                            {% if session.get('tipo_usuario') == 'gerente' %}Gerente
+                            {% elif session.get('tipo_usuario') == 'mecanico' %}Mecânico
+                            {% else %}Cliente{% endif %}
                         </div>
                     </div>
-                    <a href="{{ url_for('views.logout') }}" class="logout-btn" title="Sair">
+                    <a href="{{ url_for('views.logout') }}" class="logout-btn" title="Sair do sistema">
                         <i class="bi bi-box-arrow-right"></i>
                     </a>
+                </div>
+
+                <!-- Theme Toggle -->
+                <div class="theme-toggle">
+                    <button class="theme-toggle-btn" id="lightThemeBtn" onclick="setTheme('light')" title="Tema Claro">
+                        <i class="bi bi-sun-fill"></i>
+                    </button>
+                    <button class="theme-toggle-btn" id="darkThemeBtn" onclick="setTheme('dark')" title="Tema Escuro">
+                        <i class="bi bi-moon-fill"></i>
+                    </button>
                 </div>
             </div>
         </aside>
@@ -114,29 +116,23 @@
             <!-- Top Navbar -->
             <header class="top-navbar">
                 <div class="navbar-left">
-                    <button class="menu-toggle" onclick="toggleSidebar()">
+                    <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Menu">
                         <i class="bi bi-list"></i>
                     </button>
-                    <div class="breadcrumb-nav">
-                        <a href="{{ url_for('views.dashboard') }}">Início</a>
-                        <i class="bi bi-chevron-right"></i>
-                        <span>{% block breadcrumb %}Dashboard{% endblock %}</span>
-                    </div>
+                    <nav class="breadcrumb">
+                        <a href="{{ url_for('views.dashboard') }}">
+                            <i class="bi bi-house-fill"></i>
+                        </a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span class="breadcrumb-current">{% block breadcrumb %}Dashboard{% endblock %}</span>
+                    </nav>
                 </div>
                 <div class="navbar-right">
-                    <div class="navbar-search">
-                        <i class="bi bi-search"></i>
-                        <input type="text" placeholder="Buscar...">
-                    </div>
-                    <div class="navbar-actions">
-                        <button class="navbar-btn" title="Notificações">
-                            <i class="bi bi-bell"></i>
-                            <span class="notification-badge">3</span>
-                        </button>
-                        <button class="navbar-btn" title="Configurações">
-                            <i class="bi bi-gear"></i>
-                        </button>
-                    </div>
+                    <button class="navbar-btn"
+                        onclick="setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')"
+                        title="Alternar tema">
+                        <i class="bi bi-circle-half"></i>
+                    </button>
                 </div>
             </header>
 
@@ -146,7 +142,7 @@
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show animate-fade-in" role="alert">
+                <div class="alert alert-{{ category }} animate-fade-in" role="alert">
                     {% if category == 'success' %}
                     <i class="bi bi-check-circle-fill"></i>
                     {% elif category == 'danger' %}
@@ -157,7 +153,6 @@
                     <i class="bi bi-info-circle-fill"></i>
                     {% endif %}
                     <div>{{ message }}</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
                 {% endfor %}
                 {% endif %}
@@ -165,28 +160,66 @@
 
                 {% block content %}{% endblock %}
             </div>
-
-            <!-- Footer -->
-            <footer class="app-footer">
-                <p class="mb-0">© 2025 AutoPro - Sistema de Gerenciamento de Oficina Mecânica | TPPE</p>
-            </footer>
         </main>
     </div>
     {% else %}
-    <!-- Login/Register Layout (No sidebar) -->
-    <div class="login-page">
-        {% block auth_content %}{% endblock %}
-    </div>
+    <!-- Login/Register Layout -->
+    {% block auth_content %}{% endblock %}
     {% endif %}
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
+        // Sidebar toggle for mobile
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('sidebarOverlay').classList.toggle('show');
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
         }
+
+        // Theme switcher
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeButtons();
+        }
+
+        function updateThemeButtons() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const lightBtn = document.getElementById('lightThemeBtn');
+            const darkBtn = document.getElementById('darkThemeBtn');
+
+            if (lightBtn && darkBtn) {
+                lightBtn.classList.toggle('active', theme === 'light');
+                darkBtn.classList.toggle('active', theme === 'dark');
+            }
+        }
+
+        // Initialize theme buttons on load
+        document.addEventListener('DOMContentLoaded', function () {
+            updateThemeButtons();
+
+            // Auto-hide alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-10px)';
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function (e) {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.querySelector('.mobile-menu-toggle');
+
+            if (sidebar && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>

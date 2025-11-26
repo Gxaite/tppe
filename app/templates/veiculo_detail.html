@@ -1,331 +1,172 @@
 {% extends "base.html" %}
 
-{% block title %}Detalhes do Veículo{% endblock %}
+{% block title %}{{ veiculo.placa }} - Detalhes do Veículo{% endblock %}
+{% block breadcrumb %}Detalhes do Veículo{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header-content">
-        <h1 class="page-title">
-            <i class="bi bi-car-front"></i>
-            {{ veiculo.marca }} {{ veiculo.modelo }}
-        </h1>
-        <p class="page-subtitle">Informações detalhadas do veículo</p>
-    </div>
-    <div class="page-actions">
-        <a href="{{ url_for('views.veiculos_list') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Voltar
-        </a>
-        <a href="{{ url_for('views.veiculo_edit', id=veiculo.id) }}" class="btn btn-warning">
-            <i class="bi bi-pencil"></i> Editar
-        </a>
+<div class="detail-header animate-fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <div class="vehicle-plate" style="margin-bottom: 16px;">{{ veiculo.placa }}</div>
+            <h1 class="detail-title">{{ veiculo.marca }} {{ veiculo.modelo }}</h1>
+            <p class="detail-subtitle">Ano {{ veiculo.ano }} • {{ veiculo.cor or 'Cor não informada' }}</p>
+        </div>
+        <div class="action-buttons">
+            <a href="{{ url_for('views.veiculo_edit', id=veiculo.id) }}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            <a href="{{ url_for('views.veiculos_list') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
     </div>
 </div>
 
-<div class="row g-4">
+<div class="detail-grid">
     <!-- Informações do Veículo -->
-    <div class="col-lg-4">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <div class="vehicle-avatar">
-                    <i class="bi bi-car-front-fill"></i>
-                </div>
-                <h3 class="vehicle-name">{{ veiculo.marca }} {{ veiculo.modelo }}</h3>
-                <span class="vehicle-plate-badge">{{ veiculo.placa }}</span>
-
-                <div class="vehicle-specs mt-4">
-                    <div class="spec-item">
-                        <i class="bi bi-calendar"></i>
-                        <div class="spec-info">
-                            <span class="spec-label">Ano</span>
-                            <span class="spec-value">{{ veiculo.ano }}</span>
-                        </div>
-                    </div>
-                    <div class="spec-item">
-                        <i class="bi bi-palette"></i>
-                        <div class="spec-info">
-                            <span class="spec-label">Cor</span>
-                            <span class="spec-value">{{ veiculo.cor }}</span>
-                        </div>
-                    </div>
-                    <div class="spec-item">
-                        <i class="bi bi-wrench"></i>
-                        <div class="spec-info">
-                            <span class="spec-label">Serviços</span>
-                            <span class="spec-value">{{ servicos|length }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="bi bi-info-circle"></i>
+                Informações do Veículo
+            </h2>
         </div>
-    </div>
-
-    <!-- Proprietário -->
-    <div class="col-lg-8">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-person me-2"></i>
-                    Proprietário
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="owner-info">
-                    <div class="owner-avatar">
-                        <i class="bi bi-person-circle"></i>
-                    </div>
-                    <div class="owner-details">
-                        <h4 class="owner-name">{{ veiculo.proprietario.nome }}</h4>
-                        <div class="owner-contact">
-                            <span class="contact-item">
-                                <i class="bi bi-envelope"></i>
-                                <a href="mailto:{{ veiculo.proprietario.email }}">{{ veiculo.proprietario.email }}</a>
-                            </span>
-                            <span class="contact-item">
-                                <i class="bi bi-telephone"></i>
-                                {{ veiculo.proprietario.telefone }}
-                            </span>
-                        </div>
-                    </div>
+        <div class="card-body">
+            <div class="data-list">
+                <div class="data-row">
+                    <span class="data-label">Placa</span>
+                    <span class="data-value">{{ veiculo.placa }}</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Histórico de Serviços -->
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-clock-history me-2"></i>
-                        Histórico de Serviços
-                    </h5>
-                    {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] %}
-                    <a href="{{ url_for('views.servico_create', veiculo_id=veiculo.id) }}"
-                        class="btn btn-primary btn-sm">
-                        <i class="bi bi-plus-circle"></i> Novo Serviço
-                    </a>
-                    {% endif %}
+                <div class="data-row">
+                    <span class="data-label">Marca</span>
+                    <span class="data-value">{{ veiculo.marca }}</span>
                 </div>
-            </div>
-            <div class="card-body p-0">
-                {% if servicos %}
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th class="ps-4">Data</th>
-                                <th>Descrição</th>
-                                <th>Mecânico</th>
-                                <th>Status</th>
-                                <th>Valor</th>
-                                <th class="text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for servico in servicos %}
-                            <tr>
-                                <td class="ps-4">
-                                    <div class="date-cell">
-                                        <span class="date-value">{{ servico.criado_em.strftime('%d/%m/%Y') }}</span>
-                                        <span class="date-time">{{ servico.criado_em.strftime('%H:%M') }}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span title="{{ servico.descricao }}">
-                                        {{ servico.descricao[:35] }}{{ '...' if servico.descricao|length > 35 else '' }}
-                                    </span>
-                                </td>
-                                <td>{{ servico.mecanico.nome if servico.mecanico else '—' }}</td>
-                                <td>
-                                    <span class="badge badge-{{ servico.status_class }}">
-                                        {{ servico.status_display }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="fw-semibold {% if servico.valor_total %}text-success{% endif %}">
-                                        R$ {{ "%.2f"|format(servico.valor_total or 0) }}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
-                                        class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="data-row">
+                    <span class="data-label">Modelo</span>
+                    <span class="data-value">{{ veiculo.modelo }}</span>
                 </div>
-                {% else %}
-                <div class="empty-state-small">
-                    <i class="bi bi-inbox"></i>
-                    <p>Nenhum serviço registrado</p>
-                    {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] %}
-                    <a href="{{ url_for('views.servico_create', veiculo_id=veiculo.id) }}"
-                        class="btn btn-primary btn-sm">
-                        <i class="bi bi-plus-circle"></i> Registrar Primeiro Serviço
-                    </a>
-                    {% endif %}
+                <div class="data-row">
+                    <span class="data-label">Ano</span>
+                    <span class="data-value">{{ veiculo.ano }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Cor</span>
+                    <span class="data-value">
+                        {% if veiculo.cor %}
+                        {% set cor_lower = veiculo.cor|lower %}
+                        {% set cores_map = {
+                        'preto': '#1a1a1a',
+                        'branco': '#ffffff',
+                        'prata': '#c0c0c0',
+                        'cinza': '#808080',
+                        'vermelho': '#dc2626',
+                        'azul': '#2563eb',
+                        'verde': '#16a34a',
+                        'amarelo': '#eab308'
+                        } %}
+                        <span class="color-dot" style="background: {{ cores_map.get(cor_lower, '#6b7280') }};"></span>
+                        {{ veiculo.cor }}
+                        {% else %}
+                        Não informada
+                        {% endif %}
+                    </span>
+                </div>
+                {% if veiculo.observacoes %}
+                <div class="data-row">
+                    <span class="data-label">Observações</span>
+                    <span class="data-value">{{ veiculo.observacoes }}</span>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- Proprietário -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="bi bi-person"></i>
+                Proprietário
+            </h2>
+        </div>
+        <div class="card-body">
+            {% if veiculo.proprietario %}
+            <div class="user-info" style="background: var(--bg-secondary); border-radius: var(--border-radius);">
+                <div class="user-avatar">
+                    {{ veiculo.proprietario.nome[0]|upper }}
+                </div>
+                <div class="user-details">
+                    <div class="user-name" style="color: var(--text-primary);">{{ veiculo.proprietario.nome }}</div>
+                    <div class="user-role">{{ veiculo.proprietario.email }}</div>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-muted">Proprietário não definido</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
-<style>
-    .vehicle-avatar {
-        width: 100px;
-        height: 100px;
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.5rem;
-        font-size: 2.5rem;
-        color: white;
-        box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
-    }
-
-    .vehicle-name {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-color);
-        margin-bottom: 0.5rem;
-    }
-
-    .vehicle-plate-badge {
-        display: inline-block;
-        background: var(--secondary-color);
-        color: var(--text-color);
-        padding: 0.5rem 1.25rem;
-        border-radius: 8px;
-        font-family: 'Courier New', monospace;
-        font-weight: 700;
-        font-size: 1.25rem;
-        letter-spacing: 2px;
-        border: 2px solid var(--border-color);
-    }
-
-    .vehicle-specs {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .spec-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 0.75rem 1rem;
-        background: var(--secondary-color);
-        border-radius: var(--border-radius);
-    }
-
-    .spec-item i {
-        font-size: 1.25rem;
-        color: var(--primary-color);
-    }
-
-    .spec-info {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .spec-label {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .spec-value {
-        font-weight: 600;
-        color: var(--text-color);
-    }
-
-    .owner-info {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-    }
-
-    .owner-avatar {
-        width: 70px;
-        height: 70px;
-        background: var(--secondary-color);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        color: var(--text-muted);
-    }
-
-    .owner-name {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--text-color);
-        margin-bottom: 0.5rem;
-    }
-
-    .owner-contact {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-    }
-
-    .contact-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--text-muted);
-    }
-
-    .contact-item i {
-        color: var(--primary-color);
-    }
-
-    .contact-item a {
-        color: var(--text-color);
-        text-decoration: none;
-    }
-
-    .contact-item a:hover {
-        color: var(--primary-color);
-    }
-
-    .date-cell {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .date-value {
-        font-weight: 500;
-    }
-
-    .date-time {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-    }
-
-    .empty-state-small {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: var(--text-muted);
-    }
-
-    .empty-state-small i {
-        font-size: 2.5rem;
-        opacity: 0.5;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-
-    .empty-state-small p {
-        margin-bottom: 1rem;
-    }
-</style>
+<!-- Histórico de Serviços -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="bi bi-wrench"></i>
+            Histórico de Serviços
+        </h2>
+        <a href="{{ url_for('views.servico_create') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-lg"></i> Novo Serviço
+        </a>
+    </div>
+    <div class="card-body">
+        {% if veiculo.servicos %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Descrição</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th>Valor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for servico in veiculo.servicos %}
+                    <tr>
+                        <td>#{{ servico.id }}</td>
+                        <td>{{ servico.descricao[:50] }}{{ '...' if servico.descricao|length > 50 else '' }}</td>
+                        <td>
+                            <span class="badge status-{{ servico.status.value|replace('_', '-') }}">
+                                {{ servico.status.value|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>{{ servico.data_entrada.strftime('%d/%m/%Y') if servico.data_entrada else '-' }}</td>
+                        <td>R$ {{ "%.2f"|format(servico.valor_total or 0) }}</td>
+                        <td>
+                            <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
+                                class="btn btn-sm btn-secondary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-wrench"></i>
+            </div>
+            <h3>Nenhum serviço registrado</h3>
+            <p>Este veículo ainda não possui serviços cadastrados.</p>
+            <a href="{{ url_for('views.servico_create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Solicitar Serviço
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

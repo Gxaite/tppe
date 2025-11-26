@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitar Orçamento{% endblock %}
+{% block breadcrumb %}Solicitar Orçamento{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div>
+            <h1><i class="bi bi-file-earmark-text"></i> Solicitar Orçamento</h1>
+            <p>Preencha os dados abaixo para solicitar um orçamento para seu veículo</p>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-wrench-adjustable-circle"></i> Nova Solicitação de Orçamento</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('views.servico_solicitar') }}">
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <label for="veiculo_id" class="form-label">Selecione o Veículo *</label>
+                            <select name="veiculo_id" id="veiculo_id" class="form-select form-select-lg" required>
+                                <option value="">Escolha um veículo...</option>
+                                {% for veiculo in veiculos %}
+                                <option value="{{ veiculo.id }}">
+                                    {{ veiculo.placa }} - {{ veiculo.marca }} {{ veiculo.modelo }} ({{ veiculo.ano }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i>
+                                Não encontrou seu veículo?
+                                <a href="{{ url_for('views.veiculo_create') }}">Cadastre um novo veículo</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <label for="descricao" class="form-label">Descrição do Problema / Serviço Desejado *</label>
+                            <textarea name="descricao" id="descricao" class="form-control" rows="4"
+                                placeholder="Descreva o problema que está enfrentando ou o serviço que deseja realizar..."
+                                required></textarea>
+                            <div class="form-text">
+                                <i class="bi bi-lightbulb"></i>
+                                Seja o mais detalhado possível para que possamos fazer um orçamento preciso.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <label for="observacoes" class="form-label">Observações Adicionais</label>
+                            <textarea name="observacoes" id="observacoes" class="form-control" rows="3"
+                                placeholder="Alguma observação importante? Disponibilidade de horário, preferências, etc..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="d-flex align-items-start gap-3">
+                            <i class="bi bi-info-circle-fill fs-4"></i>
+                            <div>
+                                <strong>Como funciona?</strong>
+                                <ol class="mb-0 mt-2">
+                                    <li>Você envia a solicitação de orçamento</li>
+                                    <li>Nossa equipe analisa e prepara um orçamento detalhado</li>
+                                    <li>Você recebe o orçamento e pode aprovar ou recusar</li>
+                                    <li>Após aprovação, iniciamos o serviço</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                            <i class="bi bi-send"></i> Enviar Solicitação
+                        </button>
+                        <a href="{{ url_for('views.servicos_list') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-lg"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

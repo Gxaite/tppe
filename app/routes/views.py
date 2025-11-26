@@ -360,6 +360,43 @@ def servicos_list():
     return render_template('servicos_list.html', servicos=servicos)
 
 
+@bp.route('/servicos/solicitar', methods=['GET', 'POST'])
+@login_required
+@tipo_usuario_required('cliente')
+def servico_solicitar():
+    """Permite que clientes solicitem um orçamento/serviço"""
+    if request.method == 'POST':
+        veiculo_id = request.form.get('veiculo_id')
+        
+        # Verificar se veículo pertence ao cliente
+        veiculo = Veiculo.query.get_or_404(veiculo_id)
+        if veiculo.usuario_id != session.get('user_id'):
+            flash('Você não tem permissão para solicitar serviço para este veículo', 'danger')
+            return redirect(url_for('views.servicos_list'))
+        
+        servico = Servico(
+            veiculo_id=int(veiculo_id),
+            descricao=request.form.get('descricao'),
+            observacoes=request.form.get('observacoes'),
+            status=StatusServico.AGUARDANDO_ORCAMENTO
+        )
+        
+        db.session.add(servico)
+        db.session.commit()
+        
+        flash('Solicitação de orçamento enviada com sucesso! Aguarde nosso retorno.', 'success')
+        return redirect(url_for('views.servicos_list'))
+    
+    # GET - Listar apenas veículos do cliente
+    veiculos = Veiculo.query.filter_by(usuario_id=session.get('user_id')).all()
+    
+    if not veiculos:
+        flash('Você precisa cadastrar um veículo antes de solicitar um serviço.', 'warning')
+        return redirect(url_for('views.veiculo_create'))
+    
+    return render_template('servico_solicitar.html', veiculos=veiculos)
+
+
 @bp.route('/servicos/novo', methods=['GET', 'POST'])
 @login_required
 @tipo_usuario_required('mecanico', 'gerente')
