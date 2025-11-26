@@ -7,6 +7,16 @@ from functools import wraps
 bp = Blueprint('views', __name__)
 
 
+# ============= Landing Page =============
+
+@bp.route('/')
+def landing():
+    """Landing page institucional"""
+    if 'user_id' in session:
+        return redirect(url_for('views.dashboard'))
+    return render_template('landing.html')
+
+
 def login_required(f):
     """Decorator para proteger rotas que exigem login"""
     @wraps(f)
@@ -176,12 +186,17 @@ def dashboard_cliente(user_id):
 
 
 def dashboard_mecanico(user_id):
-    # Estatísticas
+    # Estatísticas - Aguardando orçamento: TODOS não atribuídos OU atribuídos a mim
+    aguardando_orcamento = Servico.query.filter(
+        Servico.status == StatusServico.AGUARDANDO_ORCAMENTO,
+        db.or_(
+            Servico.mecanico_id == None,
+            Servico.mecanico_id == user_id
+        )
+    ).count()
+
     stats = {
-        'aguardando_orcamento': Servico.query.filter_by(
-            mecanico_id=user_id,
-            status=StatusServico.AGUARDANDO_ORCAMENTO
-        ).count(),
+        'aguardando_orcamento': aguardando_orcamento,
         'em_andamento': Servico.query.filter_by(
             mecanico_id=user_id,
             status=StatusServico.EM_ANDAMENTO
@@ -193,13 +208,24 @@ def dashboard_mecanico(user_id):
         'total_servicos': Servico.query.filter_by(mecanico_id=user_id).count()
     }
 
-    # Serviços em atendimento
-    servicos = Servico.query.filter_by(mecanico_id=user_id).filter(
-        Servico.status.in_([
-            StatusServico.AGUARDANDO_ORCAMENTO,
-            StatusServico.ORCAMENTO_APROVADO,
-            StatusServico.EM_ANDAMENTO
-        ])
+    # Serviços: TODOS aguardando orçamento (não atribuídos) + meus serviços em andamento
+    servicos = Servico.query.filter(
+        db.or_(
+            # Serviços aguardando orçamento sem mecânico atribuído
+            db.and_(
+                Servico.status == StatusServico.AGUARDANDO_ORCAMENTO,
+                Servico.mecanico_id == None
+            ),
+            # Meus serviços em qualquer status ativo
+            db.and_(
+                Servico.mecanico_id == user_id,
+                Servico.status.in_([
+                    StatusServico.AGUARDANDO_ORCAMENTO,
+                    StatusServico.ORCAMENTO_APROVADO,
+                    StatusServico.EM_ANDAMENTO
+                ])
+            )
+        )
     ).order_by(Servico.criado_em.desc()).all()
 
     return render_template('dashboard_mecanico.html', stats=stats, servicos=servicos)
@@ -267,12 +293,24 @@ def dashboard_gerente():
 @bp.route('/veiculos')
 @login_required
 def veiculos_list():
-    if session.get('tipo_usuario') == 'cliente':
-        veiculos = Veiculo.query.filter_by(usuario_id=session.get('user_id')).all()
-    else:
-        veiculos = Veiculo.query.all()
+    tipo_usuario = session.get('tipo_usuario')
 
-    return render_template('veiculos_list.html', veiculos=veiculos)
+    if tipo_usuario == 'cliente':
+        veiculos = Veiculo.query.filter_by(usuario_id=session.get('user_id')).all()
+        return render_template('veiculos_list.html', veiculos=veiculos, agrupado=False)
+    else:
+        # Para gerente/mecânico: agrupar veículos por cliente
+        clientes = Usuario.query.filter_by(tipo=TipoUsuario.CLIENTE).order_by(Usuario.nome).all()
+        veiculos_por_cliente = []
+        for cliente in clientes:
+            veiculos_cliente = Veiculo.query.filter_by(usuario_id=cliente.id).all()
+            if veiculos_cliente:
+                veiculos_por_cliente.append({
+                    'cliente': cliente,
+                    'veiculos': veiculos_cliente
+                })
+
+        return render_template('veiculos_list.html', veiculos_por_cliente=veiculos_por_cliente, agrupado=True)
 
 
 @bp.route('/veiculos/novo', methods=['GET', 'POST'])
@@ -379,8 +417,15 @@ def servicos_list():
             Veiculo.usuario_id == user_id
         ).order_by(Servico.criado_em.desc()).all()
     elif tipo_usuario == 'mecanico':
-        servicos = Servico.query.filter_by(
-            mecanico_id=user_id
+        # Mecânico vê: serviços aguardando orçamento (sem mecânico) + seus serviços
+        servicos = Servico.query.filter(
+            db.or_(
+                db.and_(
+                    Servico.status == StatusServico.AGUARDANDO_ORCAMENTO,
+                    Servico.mecanico_id == None
+                ),
+                Servico.mecanico_id == user_id
+            )
         ).order_by(Servico.criado_em.desc()).all()
     else:  # gerente
         servicos = Servico.query.order_by(Servico.criado_em.desc()).all()
@@ -480,9 +525,15 @@ def servico_detail(id):
         flash('Você não tem permissão para ver este serviço', 'danger')
         return redirect(url_for('views.servicos_list'))
 
-    if tipo_usuario == 'mecanico' and servico.mecanico_id != user_id:
-        flash('Você não tem permissão para ver este serviço', 'danger')
-        return redirect(url_for('views.servicos_list'))
+    # Mecânico pode ver: seus serviços OU serviços aguardando orçamento sem mecânico
+    if tipo_usuario == 'mecanico':
+        pode_ver = (
+            servico.mecanico_id == user_id or
+            (servico.status == StatusServico.AGUARDANDO_ORCAMENTO and servico.mecanico_id is None)
+        )
+        if not pode_ver:
+            flash('Você não tem permissão para ver este serviço', 'danger')
+            return redirect(url_for('views.servicos_list'))
 
     orcamentos = Orcamento.query.filter_by(servico_id=id).order_by(Orcamento.criado_em.desc()).all()
 
@@ -557,6 +608,10 @@ def orcamento_create():
         descricao=descricao,
         valor=valor
     )
+
+    # Se mecânico está criando o orçamento, atribuir ele ao serviço
+    if session.get('tipo_usuario') == 'mecanico' and not servico.mecanico_id:
+        servico.mecanico_id = session.get('user_id')
 
     db.session.add(orcamento)
     db.session.commit()

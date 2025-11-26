@@ -6,16 +6,98 @@
 {% block content %}
 <div class="page-header">
     <div class="page-title-section">
-        <h1><i class="bi bi-car-front-fill text-primary"></i> Meus Veículos</h1>
-        <p>Gerencie os veículos cadastrados na sua conta</p>
+        <h1><i class="bi bi-car-front-fill text-primary"></i>
+            {% if session.get('tipo_usuario') == 'cliente' %}
+            Meus Veículos
+            {% else %}
+            Veículos Cadastrados
+            {% endif %}
+        </h1>
+        <p>
+            {% if session.get('tipo_usuario') == 'cliente' %}
+            Gerencie os veículos cadastrados na sua conta
+            {% else %}
+            Veículos organizados por cliente
+            {% endif %}
+        </p>
     </div>
+    {% if session.get('tipo_usuario') == 'cliente' %}
     <div class="page-actions">
         <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-primary">
             <i class="bi bi-plus-lg"></i> Novo Veículo
         </a>
     </div>
+    {% endif %}
 </div>
 
+{% if agrupado %}
+<!-- Veículos agrupados por cliente (para gerente/mecânico) -->
+{% if veiculos_por_cliente %}
+<div class="veiculos-agrupados">
+    {% for grupo in veiculos_por_cliente %}
+    <div class="cliente-grupo card mb-4">
+        <div class="card-header cliente-header">
+            <div class="cliente-info">
+                <div class="cliente-avatar">{{ grupo.cliente.nome[0]|upper }}</div>
+                <div class="cliente-detalhes">
+                    <h5 class="mb-0">{{ grupo.cliente.nome }}</h5>
+                    <small class="text-muted">
+                        <i class="bi bi-envelope"></i> {{ grupo.cliente.email }}
+                        {% if grupo.cliente.telefone %}
+                        &nbsp;•&nbsp; <i class="bi bi-telephone"></i> {{ grupo.cliente.telefone }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            <span class="badge badge-info">{{ grupo.veiculos|length }} veículo(s)</span>
+        </div>
+        <div class="card-body">
+            <div class="vehicles-grid-small">
+                {% for veiculo in grupo.veiculos %}
+                <div class="vehicle-card-compact">
+                    <div class="vehicle-icon-small">
+                        <i class="bi bi-car-front-fill"></i>
+                    </div>
+                    <div class="vehicle-info-compact">
+                        <div class="vehicle-plate-compact">{{ veiculo.placa }}</div>
+                        <div class="vehicle-model-compact">{{ veiculo.marca }} {{ veiculo.modelo }}</div>
+                        <div class="vehicle-meta">
+                            <span><i class="bi bi-calendar"></i> {{ veiculo.ano }}</span>
+                            {% if veiculo.cor %}
+                            <span><i class="bi bi-palette"></i> {{ veiculo.cor }}</span>
+                            {% endif %}
+                            <span><i class="bi bi-wrench"></i> {{ veiculo.servicos|length }} serviço(s)</span>
+                        </div>
+                    </div>
+                    <div class="vehicle-actions-compact">
+                        <a href="{{ url_for('views.veiculo_detail', id=veiculo.id) }}" class="btn btn-sm btn-info"
+                            title="Ver detalhes">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-car-front"></i>
+            </div>
+            <h3>Nenhum veículo cadastrado</h3>
+            <p>Não há veículos cadastrados no sistema ainda.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- Veículos do cliente -->
 {% if veiculos %}
 <div class="vehicles-grid">
     {% for veiculo in veiculos %}
@@ -107,4 +189,136 @@
     </div>
 </div>
 {% endif %}
+{% endif %}
+
+<style>
+    /* Estilos para veículos agrupados */
+    .cliente-grupo {
+        overflow: hidden;
+    }
+
+    .cliente-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid var(--primary-color);
+    }
+
+    .cliente-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .cliente-avatar {
+        width: 45px;
+        height: 45px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .cliente-detalhes h5 {
+        color: var(--text-color);
+        font-weight: 600;
+    }
+
+    .vehicles-grid-small {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .vehicle-card-compact {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #fafafa;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+
+    .vehicle-card-compact:hover {
+        background: white;
+        box-shadow: var(--shadow-sm);
+        border-color: var(--primary-color);
+    }
+
+    .vehicle-icon-small {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .vehicle-info-compact {
+        flex: 1;
+    }
+
+    .vehicle-plate-compact {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        font-size: 1rem;
+        background: var(--secondary-color);
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 0.25rem;
+    }
+
+    .vehicle-model-compact {
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.95rem;
+    }
+
+    .vehicle-meta {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.25rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .vehicle-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .vehicle-actions-compact {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .cliente-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .vehicle-card-compact {
+            flex-wrap: wrap;
+        }
+
+        .vehicle-meta {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+    }
+</style>
 {% endblock %}
