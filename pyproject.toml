@@ -20,14 +20,14 @@ extend-exclude = '''
 '''
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["backend/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = [
     "--strict-markers",
     "--tb=short",
-    "--cov=app",
+    "--cov=backend/app",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
@@ -39,7 +39,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["app"]
+source = ["backend/app"]
 omit = [
     "*/tests/*",
     "*/migrations/*",

@@ -13,7 +13,21 @@ migrate = Migrate()
 
 def create_app(config=None):
     """Factory function para criar a aplicação Flask"""
-    app = Flask(__name__)
+    # Determinar diretórios de templates e static via variável de ambiente ou padrão
+    template_dir = os.getenv('TEMPLATES_FOLDER', os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        'frontend', 'templates'
+    ))
+    static_dir = os.getenv('STATIC_FOLDER', os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        'frontend', 'static'
+    ))
+
+    app = Flask(
+        __name__,
+        template_folder=template_dir,
+        static_folder=static_dir
+    )
 
     # Configurações
     app.config['SECRET_KEY'] = os.getenv(

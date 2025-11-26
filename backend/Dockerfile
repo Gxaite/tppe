@@ -18,8 +18,8 @@ COPY . .
 # Configurar PYTHONPATH
 ENV PYTHONPATH=/app
 
-# Expor porta
+# Expor porta da API
 EXPOSE 5000
 
-# Comando padrão (pode ser sobrescrito no docker-compose)
+# Comando padrão
 CMD ["flask", "run", "--host=0.0.0.0"]
