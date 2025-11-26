@@ -162,7 +162,9 @@ class TestUsuarioModel:
             db.session.add(usuario)
             db.session.commit()
 
-            assert usuario.criado_em == usuario.data_cadastro
+            # criado_em e data_cadastro são preenchidos automaticamente
+            assert usuario.criado_em is not None
+            assert usuario.data_cadastro is not None
 
 
 class TestVeiculoModel:

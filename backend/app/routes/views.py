@@ -64,25 +64,50 @@ def register():
         return redirect(url_for('views.dashboard'))
 
     if request.method == 'POST':
-        nome = request.form.get('nome')
-        email = request.form.get('email')
+        nome = request.form.get('nome', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        telefone = request.form.get('telefone', '').strip()
         senha = request.form.get('senha')
-        tipo_usuario = request.form.get('tipo_usuario')
+        senha_confirm = request.form.get('senha_confirm')
 
-        # Validações
+        # Validação de nome (mínimo 3 caracteres)
+        if not nome or len(nome) < 3:
+            flash('O nome deve ter pelo menos 3 caracteres', 'danger')
+            return render_template('register.html')
+
+        # Validação de email
+        import re
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not email or not re.match(email_regex, email):
+            flash('Digite um email válido', 'danger')
+            return render_template('register.html')
+
+        # Validação de telefone (11 dígitos)
+        telefone_digits = re.sub(r'\D', '', telefone)
+        if len(telefone_digits) != 11:
+            flash('O telefone deve ter 11 dígitos (DDD + número)', 'danger')
+            return render_template('register.html')
+
+        # Validação de senha
+        if not senha or len(senha) < 6:
+            flash('A senha deve ter pelo menos 6 caracteres', 'danger')
+            return render_template('register.html')
+
+        if senha != senha_confirm:
+            flash('As senhas não coincidem', 'danger')
+            return render_template('register.html')
+
+        # Verificar se email já existe
         if Usuario.query.filter_by(email=email).first():
             flash('Email já cadastrado', 'danger')
             return render_template('register.html')
 
-        if tipo_usuario not in ['cliente', 'mecanico']:
-            flash('Tipo de usuário inválido', 'danger')
-            return render_template('register.html')
-
-        # Criar usuário
+        # Criar usuário SEMPRE como cliente (apenas gerentes podem criar outros tipos)
         usuario = Usuario(
             nome=nome,
             email=email,
-            tipo=tipo_usuario
+            telefone=telefone_digits,  # Salva apenas os dígitos
+            tipo='cliente'
         )
         usuario.set_senha(senha)
 
@@ -498,37 +523,45 @@ def servico_edit(id):
     )
 
 
-@bp.route('/orcamentos/novo', methods=['GET', 'POST'])
+@bp.route('/orcamentos/novo', methods=['POST'])
 @login_required
 @tipo_usuario_required('mecanico', 'gerente')
 def orcamento_create():
     servico_id = request.args.get('servico_id')
+    if not servico_id:
+        flash('Serviço não especificado', 'danger')
+        return redirect(url_for('views.servicos_list'))
+
     servico = db.get_or_404(Servico, servico_id)
 
-    if request.method == 'POST':
-        # Suporta ambos os formatos: valor único ou separado
-        valor_mao_obra = float(request.form.get('valor_mao_obra', 0) or 0)
-        valor_pecas = float(request.form.get('valor_pecas', 0) or 0)
-        valor = float(request.form.get('valor', 0) or 0)
+    # Suporta ambos os formatos: valor único ou separado
+    valor_mao_obra = float(request.form.get('valor_mao_obra', 0) or 0)
+    valor_pecas = float(request.form.get('valor_pecas', 0) or 0)
+    valor = float(request.form.get('valor', 0) or 0)
 
-        # Se valor não foi enviado, calcula a partir dos componentes
-        if valor == 0 and (valor_mao_obra > 0 or valor_pecas > 0):
-            valor = valor_mao_obra + valor_pecas
+    # Se valor não foi enviado, calcula a partir dos componentes
+    if valor == 0 and (valor_mao_obra > 0 or valor_pecas > 0):
+        valor = valor_mao_obra + valor_pecas
 
-        descricao = request.form.get('descricao', '')
-
-        orcamento = Orcamento(
-            servico_id=servico.id,
-            descricao=descricao,
-            valor=valor
-        )
-
-        db.session.add(orcamento)
-        db.session.commit()
-
-        flash('Orçamento criado com sucesso!', 'success')
+    if valor <= 0:
+        flash('O valor do orçamento deve ser maior que zero', 'danger')
         return redirect(url_for('views.servico_detail', id=servico.id))
 
+    descricao = request.form.get('descricao', '').strip()
+    if not descricao:
+        flash('A descrição do orçamento é obrigatória', 'danger')
+        return redirect(url_for('views.servico_detail', id=servico.id))
+
+    orcamento = Orcamento(
+        servico_id=servico.id,
+        descricao=descricao,
+        valor=valor
+    )
+
+    db.session.add(orcamento)
+    db.session.commit()
+
+    flash('Orçamento criado com sucesso!', 'success')
     return redirect(url_for('views.servico_detail', id=servico.id))
 
 
@@ -568,13 +601,52 @@ def usuarios_list():
 @tipo_usuario_required('gerente')
 def usuario_create():
     if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        telefone = request.form.get('telefone', '').strip()
+        tipo_usuario = request.form.get('tipo_usuario')
+        senha = request.form.get('senha')
+
+        # Validação de nome
+        if not nome or len(nome) < 3:
+            flash('O nome deve ter pelo menos 3 caracteres', 'danger')
+            return render_template('usuario_form.html', usuario=None)
+
+        # Validação de email
+        import re
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not email or not re.match(email_regex, email):
+            flash('Digite um email válido', 'danger')
+            return render_template('usuario_form.html', usuario=None)
+
+        # Verificar se email já existe
+        if Usuario.query.filter_by(email=email).first():
+            flash('Email já cadastrado', 'danger')
+            return render_template('usuario_form.html', usuario=None)
+
+        # Validação de telefone (11 dígitos)
+        telefone_digits = re.sub(r'\D', '', telefone)
+        if telefone and len(telefone_digits) != 11:
+            flash('O telefone deve ter 11 dígitos', 'danger')
+            return render_template('usuario_form.html', usuario=None)
+
+        # Validação de tipo de usuário
+        if tipo_usuario not in ['cliente', 'mecanico', 'gerente']:
+            flash('Tipo de usuário inválido', 'danger')
+            return render_template('usuario_form.html', usuario=None)
+
+        # Validação de senha
+        if not senha or len(senha) < 6:
+            flash('A senha deve ter pelo menos 6 caracteres', 'danger')
+            return render_template('usuario_form.html', usuario=None)
+
         usuario = Usuario(
-            nome=request.form.get('nome'),
-            email=request.form.get('email'),
-            telefone=request.form.get('telefone'),
-            tipo_usuario=request.form.get('tipo_usuario')
+            nome=nome,
+            email=email,
+            telefone=telefone_digits if telefone_digits else None,
+            tipo=tipo_usuario
         )
-        usuario.definir_senha(request.form.get('senha'))
+        usuario.set_senha(senha)
 
         db.session.add(usuario)
         db.session.commit()

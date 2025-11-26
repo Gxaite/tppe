@@ -97,10 +97,10 @@
                     </h5>
                     {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] and servico.status ==
                     'aguardando_orcamento' %}
-                    <a href="{{ url_for('views.orcamento_create', servico_id=servico.id) }}"
-                        class="btn btn-primary btn-sm">
+                    <button type="button" class="btn btn-primary btn-sm btn-novo-orcamento" data-bs-toggle="modal"
+                        data-bs-target="#modalOrcamento">
                         <i class="bi bi-plus-circle"></i> Novo Orçamento
-                    </a>
+                    </button>
                     {% endif %}
                 </div>
             </div>
@@ -120,10 +120,10 @@
                             <span class="value-label">Valor</span>
                             <span class="value-amount">R$ {{ "%.2f"|format(orcamento.valor) }}</span>
                         </div>
-                        {% if session.get('tipo_usuario') == 'cliente' and servico.status == 'aguardando_aprovacao' %}
+                        {% if session.get('tipo_usuario') == 'cliente' and servico.status == 'aguardando_orcamento' %}
                         <div class="orcamento-actions">
                             <form method="POST" action="{{ url_for('views.orcamento_approve', id=orcamento.id) }}">
-                                <button type="submit" class="btn btn-success"
+                                <button type="submit" class="btn btn-success btn-approve-orcamento"
                                     onclick="return confirm('Aprovar este orçamento?')">
                                     <i class="bi bi-check2"></i> Aprovar
                                 </button>
@@ -229,6 +229,84 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Novo Orçamento -->
+{% if session.get('tipo_usuario') in ['mecanico', 'gerente'] %}
+<div class="modal fade" id="modalOrcamento" tabindex="-1" aria-labelledby="modalOrcamentoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalOrcamentoLabel">
+                    <i class="bi bi-receipt me-2"></i>
+                    Novo Orçamento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <form method="POST" action="{{ url_for('views.orcamento_create', servico_id=servico.id) }}"
+                id="formOrcamento">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="descricao" class="form-label">Descrição do Orçamento</label>
+                        <textarea class="form-control" id="descricao" name="descricao" rows="3"
+                            placeholder="Descreva os serviços e peças necessárias..." required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="valor_mao_obra" class="form-label">Mão de Obra (R$)</label>
+                                <input type="number" class="form-control" id="valor_mao_obra" name="valor_mao_obra"
+                                    step="0.01" min="0" placeholder="0,00">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="valor_pecas" class="form-label">Peças (R$)</label>
+                                <input type="number" class="form-control" id="valor_pecas" name="valor_pecas"
+                                    step="0.01" min="0" placeholder="0,00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="valor" class="form-label fw-bold">Valor Total (R$) *</label>
+                        <input type="number" class="form-control form-control-lg" id="valor" name="valor" step="0.01"
+                            min="0.01" placeholder="0,00" required>
+                        <div class="form-text">O valor total será calculado automaticamente se informar mão de obra e
+                            peças</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Criar Orçamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-calcular valor total
+    document.addEventListener('DOMContentLoaded', function () {
+        const valorMaoObra = document.getElementById('valor_mao_obra');
+        const valorPecas = document.getElementById('valor_pecas');
+        const valorTotal = document.getElementById('valor');
+
+        function calcularTotal() {
+            const maoObra = parseFloat(valorMaoObra.value) || 0;
+            const pecas = parseFloat(valorPecas.value) || 0;
+            if (maoObra > 0 || pecas > 0) {
+                valorTotal.value = (maoObra + pecas).toFixed(2);
+            }
+        }
+
+        if (valorMaoObra && valorPecas) {
+            valorMaoObra.addEventListener('input', calcularTotal);
+            valorPecas.addEventListener('input', calcularTotal);
+        }
+    });
+</script>
+{% endif %}
 
 <style>
     .status-card {

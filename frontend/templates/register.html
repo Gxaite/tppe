@@ -3,14 +3,14 @@
 {% block title %}Cadastro - AutoPro Oficina{% endblock %}
 
 {% block auth_content %}
-<div class="login-container" style="max-width: 480px;">
+<div class="login-container" style="max-width: 520px;">
     <div class="login-card animate-fade-in">
         <div class="login-header">
             <div class="login-logo">
                 <i class="bi bi-person-plus"></i>
             </div>
             <h1>Criar Conta</h1>
-            <p>Preencha os dados para se cadastrar</p>
+            <p>Cadastre-se como cliente para agendar serviços</p>
         </div>
 
         <div class="login-body">
@@ -29,23 +29,24 @@
             {% endif %}
             {% endwith %}
 
-            <form method="POST" action="{{ url_for('views.register') }}" id="registerForm">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="form-group">
-                            <label for="nome" class="form-label required">Nome Completo</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-person"></i>
-                                </span>
-                                <input type="text" class="form-control" id="nome" name="nome"
-                                    placeholder="João da Silva" required minlength="3">
-                            </div>
-                        </div>
+            <form method="POST" action="{{ url_for('views.register') }}" id="registerForm" novalidate>
+                <!-- Nome Completo -->
+                <div class="form-group" id="nome-group">
+                    <label for="nome" class="form-label required">Nome Completo</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        <input type="text" class="form-control" id="nome" name="nome" placeholder="João da Silva"
+                            required minlength="3" maxlength="100">
+                    </div>
+                    <div class="invalid-feedback" id="nome-error">
+                        O nome deve ter pelo menos 3 caracteres
                     </div>
                 </div>
 
-                <div class="form-group">
+                <!-- Email -->
+                <div class="form-group" id="email-group">
                     <label for="email" class="form-label required">Email</label>
                     <div class="input-group">
                         <span class="input-group-text">
@@ -54,22 +55,33 @@
                         <input type="email" class="form-control" id="email" name="email" placeholder="seu@email.com"
                             required>
                     </div>
+                    <div class="invalid-feedback" id="email-error">
+                        Digite um email válido (ex: nome@dominio.com)
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="telefone" class="form-label">Telefone</label>
+                <!-- Telefone -->
+                <div class="form-group" id="telefone-group">
+                    <label for="telefone" class="form-label required">Telefone Celular</label>
                     <div class="input-group">
                         <span class="input-group-text">
                             <i class="bi bi-phone"></i>
                         </span>
                         <input type="tel" class="form-control" id="telefone" name="telefone"
-                            placeholder="(61) 99999-9999">
+                            placeholder="(61) 99999-9999" required maxlength="15">
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class="bi bi-info-circle"></i> Digite os 11 dígitos (DDD + número)
+                    </div>
+                    <div class="invalid-feedback" id="telefone-error">
+                        O telefone deve ter 11 dígitos (DDD + 9 dígitos)
                     </div>
                 </div>
 
+                <!-- Senhas em Row -->
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="form-group" id="senha-group">
                             <label for="senha" class="form-label required">Senha</label>
                             <div class="input-group">
                                 <span class="input-group-text">
@@ -78,10 +90,11 @@
                                 <input type="password" class="form-control" id="senha" name="senha"
                                     placeholder="Mínimo 6 caracteres" required minlength="6">
                             </div>
+                            <div class="invalid-feedback">Mínimo 6 caracteres</div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group">
+                        <div class="form-group" id="senha_confirm-group">
                             <label for="senha_confirm" class="form-label required">Confirmar</label>
                             <div class="input-group">
                                 <span class="input-group-text">
@@ -90,29 +103,25 @@
                                 <input type="password" class="form-control" id="senha_confirm" name="senha_confirm"
                                     placeholder="Repita a senha" required minlength="6">
                             </div>
+                            <div class="invalid-feedback" id="senha-match-error">As senhas não coincidem</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="tipo_usuario" class="form-label required">Tipo de Conta</label>
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="bi bi-person-badge"></i>
-                        </span>
-                        <select class="form-control form-select" id="tipo_usuario" name="tipo_usuario" required>
-                            <option value="">Selecione o tipo...</option>
-                            <option value="cliente">👤 Cliente</option>
-                            <option value="mecanico">🔧 Mecânico</option>
-                        </select>
-                    </div>
-                    <div class="form-text">
-                        <i class="bi bi-info-circle"></i> Gerentes só podem ser criados por outro gerente
+                <!-- Info Box -->
+                <div class="alert alert-info mb-4 mt-3">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+                        <div>
+                            <strong>Conta de Cliente</strong>
+                            <p class="mb-0 small">Com sua conta você poderá cadastrar veículos, solicitar orçamentos e
+                                acompanhar os serviços da oficina.</p>
+                        </div>
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
-                    <i class="bi bi-check-circle"></i> Criar Conta
+                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3" id="btnSubmit">
+                    <i class="bi bi-check-circle"></i> Criar Minha Conta
                 </button>
             </form>
         </div>
@@ -123,18 +132,172 @@
         </div>
     </div>
 </div>
+
+<style>
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group .invalid-feedback {
+        display: none;
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .form-group.has-error .invalid-feedback {
+        display: block;
+    }
+
+    .form-group.has-error .form-control {
+        border-color: #dc3545;
+    }
+
+    .form-group.has-error .input-group-text {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
+    .form-group.is-valid .form-control {
+        border-color: #198754;
+    }
+
+    .form-group.is-valid .input-group-text {
+        border-color: #198754;
+        color: #198754;
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05));
+        border: 1px solid rgba(13, 110, 253, 0.2);
+        border-radius: 12px;
+    }
+
+    .required::after {
+        content: " *";
+        color: #dc3545;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    document.getElementById('registerForm').addEventListener('submit', function (e) {
-        const senha = document.getElementById('senha').value;
-        const senhaConfirm = document.getElementById('senha_confirm').value;
+    (function () {
+        const form = document.getElementById('registerForm');
+        const btnSubmit = document.getElementById('btnSubmit');
 
-        if (senha !== senhaConfirm) {
-            e.preventDefault();
-            alert('As senhas não coincidem!');
+        // Elementos do formulário
+        const nomeInput = document.getElementById('nome');
+        const emailInput = document.getElementById('email');
+        const telefoneInput = document.getElementById('telefone');
+        const senhaInput = document.getElementById('senha');
+        const senhaConfirmInput = document.getElementById('senha_confirm');
+
+        // Regex para validação de email
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        // Máscara de telefone
+        telefoneInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+
+            if (value.length > 11) {
+                value = value.slice(0, 11);
+            }
+
+            if (value.length > 0) {
+                if (value.length <= 2) {
+                    value = '(' + value;
+                } else if (value.length <= 7) {
+                    value = '(' + value.slice(0, 2) + ') ' + value.slice(2);
+                } else {
+                    value = '(' + value.slice(0, 2) + ') ' + value.slice(2, 7) + '-' + value.slice(7);
+                }
+            }
+
+            e.target.value = value;
+            validateField('telefone');
+        });
+
+        // Validação em tempo real
+        nomeInput.addEventListener('blur', () => validateField('nome'));
+        emailInput.addEventListener('blur', () => validateField('email'));
+        senhaInput.addEventListener('blur', () => validateField('senha'));
+        senhaConfirmInput.addEventListener('blur', () => validateField('senha_confirm'));
+
+        function validateField(field) {
+            let isValid = true;
+            let element;
+
+            switch (field) {
+                case 'nome':
+                    element = nomeInput;
+                    const nome = element.value.trim();
+                    isValid = nome.length >= 3;
+                    break;
+
+                case 'email':
+                    element = emailInput;
+                    const email = element.value.trim();
+                    isValid = emailRegex.test(email);
+                    break;
+
+                case 'telefone':
+                    element = telefoneInput;
+                    const telefoneDigits = element.value.replace(/\D/g, '');
+                    isValid = telefoneDigits.length === 11;
+                    break;
+
+                case 'senha':
+                    element = senhaInput;
+                    isValid = element.value.length >= 6;
+                    break;
+
+                case 'senha_confirm':
+                    element = senhaConfirmInput;
+                    isValid = element.value === senhaInput.value && element.value.length >= 6;
+                    break;
+            }
+
+            const formGroup = document.getElementById(field + '-group') || element.closest('.form-group');
+
+            if (isValid) {
+                formGroup.classList.remove('has-error');
+                formGroup.classList.add('is-valid');
+            } else if (element.value.length > 0) {
+                formGroup.classList.add('has-error');
+                formGroup.classList.remove('is-valid');
+            }
+
+            return isValid;
         }
-    });
+
+        function validateAll() {
+            const nomeValid = validateField('nome');
+            const emailValid = validateField('email');
+            const telefoneValid = validateField('telefone');
+            const senhaValid = validateField('senha');
+            const senhaConfirmValid = validateField('senha_confirm');
+
+            return nomeValid && emailValid && telefoneValid && senhaValid && senhaConfirmValid;
+        }
+
+        form.addEventListener('submit', function (e) {
+            if (!validateAll()) {
+                e.preventDefault();
+
+                // Scroll para o primeiro campo com erro
+                const firstError = form.querySelector('.has-error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
+                return false;
+            }
+
+            // Desabilitar botão durante submit
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Criando conta...';
+        });
+    })();
 </script>
 {% endblock %}

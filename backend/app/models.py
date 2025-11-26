@@ -31,12 +31,8 @@ class Usuario(db.Model):
     telefone = db.Column(db.String(20), nullable=True)
     endereco = db.Column(db.String(200), nullable=True)
     tipo = db.Column(db.Enum(TipoUsuario), nullable=False, default=TipoUsuario.CLIENTE)
-    data_cadastro = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-
-    # Aliases para compatibilidade
-    @property
-    def criado_em(self):
-        return self.data_cadastro
+    criado_em = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    data_cadastro = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
 
     @property
     def tipo_usuario(self):

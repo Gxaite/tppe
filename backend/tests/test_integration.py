@@ -288,8 +288,10 @@ class TestFluxoServicos:
             servico_id = servico.id
         
         response = client.post(f'/orcamentos/novo?servico_id={servico_id}', data={
+            'descricao': 'Troca de óleo e filtros',
             'valor_mao_obra': 100.00,
-            'valor_pecas': 150.00
+            'valor_pecas': 150.00,
+            'valor': 250.00
         }, follow_redirects=True)
         
         assert response.status_code == 200
