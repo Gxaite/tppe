@@ -14,8 +14,11 @@ class TipoUsuario(str, Enum):
 
 class StatusServico(str, Enum):
     PENDENTE = "pendente"
+    AGUARDANDO_ORCAMENTO = "aguardando_orcamento"
+    ORCAMENTO_APROVADO = "orcamento_aprovado"
     EM_ANDAMENTO = "em_andamento"
     CONCLUIDO = "concluido"
+    CANCELADO = "cancelado"
 
 
 class Usuario(db.Model):
@@ -99,6 +102,7 @@ class Servico(db.Model):
     mecanico_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     atualizado_em = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    data_conclusao = db.Column(db.DateTime, nullable=True)
     
     # Relacionamentos
     orcamentos = db.relationship('Orcamento', backref='servico', lazy=True, cascade='all, delete-orphan')

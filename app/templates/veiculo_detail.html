@@ -46,11 +46,11 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <h6 class="text-muted">Proprietário</h6>
-                        <p class="fs-5">{{ veiculo.dono.nome }}</p>
+                        <p class="fs-5">{{ veiculo.proprietario.nome }}</p>
                     </div>
                     <div class="col-md-6">
                         <h6 class="text-muted">Contato</h6>
-                        <p class="fs-5">{{ veiculo.dono.telefone }}</p>
+                        <p class="fs-5">{{ veiculo.proprietario.telefone }}</p>
                     </div>
                 </div>
             </div>
@@ -82,7 +82,7 @@
                         <tbody>
                             {% for servico in servicos %}
                             <tr>
-                                <td>{{ servico.data_entrada.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ servico.criado_em.strftime('%d/%m/%Y') }}</td>
                                 <td>{{ servico.descricao[:40] }}...</td>
                                 <td>{{ servico.mecanico.nome if servico.mecanico else '-' }}</td>
                                 <td>

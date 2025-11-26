@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from sqlalchemy import func, extract
-from app.models import db, Usuario, Veiculo, Servico, Orcamento, StatusServico
+from app.models import db, Usuario, Veiculo, Servico, Orcamento, StatusServico, TipoUsuario
 from functools import wraps
 
 bp = Blueprint('views', __name__)
@@ -141,7 +141,7 @@ def dashboard_cliente(user_id):
     # Serviços recentes
     servicos = Servico.query.join(Veiculo).filter(
         Veiculo.usuario_id == user_id
-    ).order_by(Servico.data_entrada.desc()).limit(10).all()
+    ).order_by(Servico.criado_em.desc()).limit(10).all()
     
     # Adicionar classes de status
     for servico in servicos:
@@ -158,31 +158,28 @@ def dashboard_mecanico(user_id):
     # Estatísticas
     stats = {
         'aguardando_orcamento': Servico.query.filter_by(
-            mecanico_responsavel_id=user_id,
+            mecanico_id=user_id,
             status=StatusServico.AGUARDANDO_ORCAMENTO
         ).count(),
         'em_andamento': Servico.query.filter_by(
-            mecanico_responsavel_id=user_id,
+            mecanico_id=user_id,
             status=StatusServico.EM_ANDAMENTO
         ).count(),
         'concluidos_mes': Servico.query.filter_by(
-            mecanico_responsavel_id=user_id,
+            mecanico_id=user_id,
             status=StatusServico.CONCLUIDO
-        ).filter(
-            extract('month', Servico.data_conclusao) == datetime.now().month,
-            extract('year', Servico.data_conclusao) == datetime.now().year
         ).count(),
-        'total_servicos': Servico.query.filter_by(mecanico_responsavel_id=user_id).count()
+        'total_servicos': Servico.query.filter_by(mecanico_id=user_id).count()
     }
     
     # Serviços em atendimento
-    servicos = Servico.query.filter_by(mecanico_responsavel_id=user_id).filter(
+    servicos = Servico.query.filter_by(mecanico_id=user_id).filter(
         Servico.status.in_([
             StatusServico.AGUARDANDO_ORCAMENTO,
             StatusServico.ORCAMENTO_APROVADO,
             StatusServico.EM_ANDAMENTO
         ])
-    ).order_by(Servico.data_entrada.desc()).all()
+    ).order_by(Servico.criado_em.desc()).all()
     
     for servico in servicos:
         servico.status_class = get_status_class(servico.status)
@@ -194,11 +191,9 @@ def dashboard_mecanico(user_id):
 def dashboard_gerente():
     # Estatísticas gerais
     stats = {
-        'total_clientes': Usuario.query.filter_by(tipo='cliente').count(),
-        'receita_mensal': db.session.query(func.sum(Servico.valor_total)).filter(
-            Servico.status == StatusServico.CONCLUIDO,
-            extract('month', Servico.data_conclusao) == datetime.now().month,
-            extract('year', Servico.data_conclusao) == datetime.now().year
+        'total_clientes': Usuario.query.filter_by(tipo=TipoUsuario.CLIENTE).count(),
+        'receita_mensal': db.session.query(func.sum(Servico.valor)).filter(
+            Servico.status == StatusServico.CONCLUIDO
         ).scalar() or 0,
         'servicos_ativos': Servico.query.filter(
             Servico.status.in_([
@@ -222,25 +217,25 @@ def dashboard_gerente():
         mecanicos_stats.append({
             'nome': mecanico.nome,
             'aguardando': Servico.query.filter_by(
-                mecanico_responsavel_id=mecanico.id,
+                mecanico_id=mecanico.id,
                 status=StatusServico.AGUARDANDO_ORCAMENTO
             ).count(),
             'em_andamento': Servico.query.filter_by(
-                mecanico_responsavel_id=mecanico.id,
+                mecanico_id=mecanico.id,
                 status=StatusServico.EM_ANDAMENTO
             ).count(),
             'concluidos': Servico.query.filter_by(
-                mecanico_responsavel_id=mecanico.id,
+                mecanico_id=mecanico.id,
                 status=StatusServico.CONCLUIDO
             ).filter(
                 extract('month', Servico.data_conclusao) == datetime.now().month,
                 extract('year', Servico.data_conclusao) == datetime.now().year
             ).count(),
-            'total': Servico.query.filter_by(mecanico_responsavel_id=mecanico.id).count()
+            'total': Servico.query.filter_by(mecanico_id=mecanico.id).count()
         })
     
     # Serviços recentes
-    servicos = Servico.query.order_by(Servico.data_entrada.desc()).limit(15).all()
+    servicos = Servico.query.order_by(Servico.criado_em.desc()).limit(15).all()
     for servico in servicos:
         servico.status_class = get_status_class(servico.status)
         servico.status_display = get_status_display(servico.status)
@@ -296,7 +291,7 @@ def veiculo_detail(id):
         flash('Você não tem permissão para ver este veículo', 'danger')
         return redirect(url_for('views.veiculos_list'))
     
-    servicos = Servico.query.filter_by(veiculo_id=id).order_by(Servico.data_entrada.desc()).all()
+    servicos = Servico.query.filter_by(veiculo_id=id).order_by(Servico.criado_em.desc()).all()
     for servico in servicos:
         servico.status_class = get_status_class(servico.status)
         servico.status_display = get_status_display(servico.status)
@@ -362,13 +357,13 @@ def servicos_list():
     if tipo_usuario == 'cliente':
         servicos = Servico.query.join(Veiculo).filter(
             Veiculo.usuario_id == user_id
-        ).order_by(Servico.data_entrada.desc()).all()
+        ).order_by(Servico.criado_em.desc()).all()
     elif tipo_usuario == 'mecanico':
         servicos = Servico.query.filter_by(
-            mecanico_responsavel_id=user_id
-        ).order_by(Servico.data_entrada.desc()).all()
+            mecanico_id=user_id
+        ).order_by(Servico.criado_em.desc()).all()
     else:  # gerente
-        servicos = Servico.query.order_by(Servico.data_entrada.desc()).all()
+        servicos = Servico.query.order_by(Servico.criado_em.desc()).all()
     
     for servico in servicos:
         servico.status_class = get_status_class(servico.status)
@@ -393,8 +388,8 @@ def servico_create():
         if request.form.get('data_previsao'):
             servico.data_previsao = datetime.strptime(request.form.get('data_previsao'), '%Y-%m-%d')
         
-        if request.form.get('mecanico_responsavel_id'):
-            servico.mecanico_responsavel_id = int(request.form.get('mecanico_responsavel_id'))
+        if request.form.get('mecanico_id'):
+            servico.mecanico_id = int(request.form.get('mecanico_id'))
         
         db.session.add(servico)
         db.session.commit()
@@ -429,7 +424,7 @@ def servico_detail(id):
         flash('Você não tem permissão para ver este serviço', 'danger')
         return redirect(url_for('views.servicos_list'))
     
-    if tipo_usuario == 'mecanico' and servico.mecanico_responsavel_id != user_id:
+    if tipo_usuario == 'mecanico' and servico.mecanico_id != user_id:
         flash('Você não tem permissão para ver este serviço', 'danger')
         return redirect(url_for('views.servicos_list'))
     
@@ -457,8 +452,8 @@ def servico_edit(id):
         if request.form.get('data_previsao'):
             servico.data_previsao = datetime.strptime(request.form.get('data_previsao'), '%Y-%m-%d')
         
-        if request.form.get('mecanico_responsavel_id'):
-            servico.mecanico_responsavel_id = int(request.form.get('mecanico_responsavel_id'))
+        if request.form.get('mecanico_id'):
+            servico.mecanico_id = int(request.form.get('mecanico_id'))
         
         db.session.commit()
         
@@ -482,15 +477,13 @@ def orcamento_create():
     servico = Servico.query.get_or_404(servico_id)
     
     if request.method == 'POST':
-        valor_mao_obra = float(request.form.get('valor_mao_obra'))
-        valor_pecas = float(request.form.get('valor_pecas'))
+        valor = float(request.form.get('valor'))
+        descricao = request.form.get('descricao', '')
         
         orcamento = Orcamento(
             servico_id=servico.id,
-            valor_mao_obra=valor_mao_obra,
-            valor_pecas=valor_pecas,
-            valor_total=valor_mao_obra + valor_pecas,
-            data_orcamento=datetime.now()
+            descricao=descricao,
+            valor=valor
         )
         
         db.session.add(orcamento)
@@ -514,11 +507,8 @@ def orcamento_approve(id):
         flash('Você não tem permissão para aprovar este orçamento', 'danger')
         return redirect(url_for('views.servicos_list'))
     
-    orcamento.aprovado = True
     servico.status = StatusServico.ORCAMENTO_APROVADO
-    servico.valor_mao_obra = orcamento.valor_mao_obra
-    servico.valor_pecas = orcamento.valor_pecas
-    servico.valor_total = orcamento.valor_total
+    servico.valor = orcamento.valor
     
     db.session.commit()
     

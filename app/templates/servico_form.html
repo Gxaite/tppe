@@ -27,7 +27,7 @@
                                     <option value="{{ veiculo.id }}" {% if servico and servico.veiculo_id==veiculo.id
                                         %}selected{% endif %}>
                                         {{ veiculo.marca }} {{ veiculo.modelo }} - {{ veiculo.placa }} ({{
-                                        veiculo.dono.nome }})
+                                        veiculo.proprietario.nome }})
                                     </option>
                                     {% endfor %}
                                 </select>
@@ -65,9 +65,9 @@
 
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label for="data_entrada" class="form-label required-field">Data de Entrada</label>
-                                <input type="date" class="form-control" id="data_entrada" name="data_entrada"
-                                    value="{{ servico.data_entrada.strftime('%Y-%m-%d') if servico else '' }}" required>
+                                <label for="criado_em" class="form-label required-field">Data de Entrada</label>
+                                <input type="date" class="form-control" id="criado_em" name="criado_em"
+                                    value="{{ servico.criado_em.strftime('%Y-%m-%d') if servico else '' }}" required>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="data_previsao" class="form-label">Previsão de Entrega</label>

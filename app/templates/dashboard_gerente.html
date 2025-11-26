@@ -186,7 +186,7 @@
                 <tbody>
                     {% for servico in servicos %}
                     <tr>
-                        <td>{{ servico.veiculo.dono.nome }}</td>
+                        <td>{{ servico.veiculo.proprietario.nome }}</td>
                         <td>{{ servico.veiculo.modelo }} - {{ servico.veiculo.placa }}</td>
                         <td>{{ servico.mecanico.nome if servico.mecanico else '-' }}</td>
                         <td>
@@ -195,7 +195,7 @@
                             </span>
                         </td>
                         <td>R$ {{ "%.2f"|format(servico.valor_total or 0) }}</td>
-                        <td>{{ servico.data_entrada.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ servico.criado_em.strftime('%d/%m/%Y') }}</td>
                         <td class="table-actions">
                             <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
                                 class="btn btn-sm btn-info btn-icon">

@@ -16,8 +16,9 @@
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <h6 class="text-muted">Cliente</h6>
-                        <p class="fs-5">{{ servico.veiculo.dono.nome }}</p>
-                        <p class="text-muted">{{ servico.veiculo.dono.email }} | {{ servico.veiculo.dono.telefone }}</p>
+                        <p class="fs-5">{{ servico.veiculo.proprietario.nome }}</p>
+                        <p class="text-muted">{{ servico.veiculo.proprietario.email }} | {{
+                            servico.veiculo.proprietario.telefone }}</p>
                     </div>
                     <div class="col-md-6">
                         <h6 class="text-muted">Veículo</h6>
@@ -35,7 +36,7 @@
                     <div class="col-md-6">
                         <h6 class="text-muted">Datas</h6>
                         <p>
-                            <strong>Entrada:</strong> {{ servico.data_entrada.strftime('%d/%m/%Y') }}<br>
+                            <strong>Entrada:</strong> {{ servico.criado_em.strftime('%d/%m/%Y') }}<br>
                             <strong>Previsão:</strong> {{ servico.data_previsao.strftime('%d/%m/%Y') if
                             servico.data_previsao else 'Não definida' }}<br>
                             {% if servico.data_conclusao %}
@@ -58,18 +59,9 @@
                 {% endif %}
 
                 <div class="row">
-                    <div class="col-md-4">
-                        <h6 class="text-muted">Valor Mão de Obra</h6>
-                        <p class="fs-5 text-primary">R$ {{ "%.2f"|format(servico.valor_mao_obra or 0) }}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <h6 class="text-muted">Valor Peças</h6>
-                        <p class="fs-5 text-info">R$ {{ "%.2f"|format(servico.valor_pecas or 0) }}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <h6 class="text-muted">Valor Total</h6>
-                        <p class="fs-4 text-success"><strong>R$ {{ "%.2f"|format(servico.valor_total or 0) }}</strong>
-                        </p>
+                    <div class="col-md-12">
+                        <h6 class="text-muted">Valor do Serviço</h6>
+                        <p class="fs-4 text-success"><strong>R$ {{ "%.2f"|format(servico.valor or 0) }}</strong></p>
                     </div>
                 </div>
             </div>
@@ -92,27 +84,20 @@
                         <thead>
                             <tr>
                                 <th>Data</th>
-                                <th>Mão de Obra</th>
-                                <th>Peças</th>
-                                <th>Total</th>
-                                <th>Status</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for orcamento in orcamentos %}
                             <tr>
-                                <td>{{ orcamento.data_orcamento.strftime('%d/%m/%Y') }}</td>
-                                <td>R$ {{ "%.2f"|format(orcamento.valor_mao_obra) }}</td>
-                                <td>R$ {{ "%.2f"|format(orcamento.valor_pecas) }}</td>
-                                <td><strong>R$ {{ "%.2f"|format(orcamento.valor_total) }}</strong></td>
+                                <td>{{ orcamento.criado_em.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ orcamento.descricao }}</td>
+                                <td><strong>R$ {{ "%.2f"|format(orcamento.valor) }}</strong></td>
                                 <td>
-                                    <span class="badge bg-{{ 'success' if orcamento.aprovado else 'warning' }}">
-                                        {{ 'Aprovado' if orcamento.aprovado else 'Pendente' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if session.get('tipo_usuario') == 'cliente' and not orcamento.aprovado %}
+                                    {% if session.get('tipo_usuario') == 'cliente' and servico.status ==
+                                    'aguardando_aprovacao' %}
                                     <form method="POST"
                                         action="{{ url_for('views.orcamento_approve', id=orcamento.id) }}"
                                         class="d-inline">

@@ -86,7 +86,7 @@
                 <tbody>
                     {% for servico in servicos %}
                     <tr>
-                        <td>{{ servico.veiculo.dono.nome }}</td>
+                        <td>{{ servico.veiculo.proprietario.nome }}</td>
                         <td>{{ servico.veiculo.modelo }} - {{ servico.veiculo.placa }}</td>
                         <td>{{ servico.descricao[:40] }}...</td>
                         <td>
@@ -94,7 +94,7 @@
                                 {{ servico.status_display }}
                             </span>
                         </td>
-                        <td>{{ servico.data_entrada.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ servico.criado_em.strftime('%d/%m/%Y') }}</td>
                         <td class="table-actions">
                             <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
                                 class="btn btn-sm btn-info btn-icon" title="Ver detalhes">

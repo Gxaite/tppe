@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+requisitos.md
+
+avaliacao.md
+
 # C extensions
 *.so
 
