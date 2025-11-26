@@ -143,11 +143,6 @@ def dashboard_cliente(user_id):
         Veiculo.usuario_id == user_id
     ).order_by(Servico.criado_em.desc()).limit(10).all()
     
-    # Adicionar classes de status
-    for servico in servicos:
-        servico.status_class = get_status_class(servico.status)
-        servico.status_display = get_status_display(servico.status)
-    
     return render_template('dashboard_cliente.html', 
                          stats=stats, 
                          veiculos=veiculos[:5], 
@@ -181,10 +176,6 @@ def dashboard_mecanico(user_id):
         ])
     ).order_by(Servico.criado_em.desc()).all()
     
-    for servico in servicos:
-        servico.status_class = get_status_class(servico.status)
-        servico.status_display = get_status_display(servico.status)
-    
     return render_template('dashboard_mecanico.html', stats=stats, servicos=servicos)
 
 
@@ -211,7 +202,7 @@ def dashboard_gerente():
     }
     
     # Estatísticas por mecânico
-    mecanicos = Usuario.query.filter_by(tipo='mecanico').all()
+    mecanicos = Usuario.query.filter_by(tipo=TipoUsuario.MECANICO).all()
     mecanicos_stats = []
     for mecanico in mecanicos:
         mecanicos_stats.append({
@@ -236,9 +227,6 @@ def dashboard_gerente():
     
     # Serviços recentes
     servicos = Servico.query.order_by(Servico.criado_em.desc()).limit(15).all()
-    for servico in servicos:
-        servico.status_class = get_status_class(servico.status)
-        servico.status_display = get_status_display(servico.status)
     
     return render_template('dashboard_gerente.html', 
                          stats=stats, 
@@ -263,11 +251,18 @@ def veiculos_list():
 @login_required
 def veiculo_create():
     if request.method == 'POST':
+        placa = request.form.get('placa').upper()
+        
+        # Verificar se placa já existe
+        if Veiculo.query.filter_by(placa=placa).first():
+            flash('Placa já cadastrada no sistema!', 'danger')
+            return render_template('veiculo_form.html', veiculo=None)
+        
         veiculo = Veiculo(
             marca=request.form.get('marca'),
             modelo=request.form.get('modelo'),
             ano=int(request.form.get('ano')),
-            placa=request.form.get('placa').upper(),
+            placa=placa,
             cor=request.form.get('cor'),
             usuario_id=session.get('user_id')
         )
@@ -292,9 +287,6 @@ def veiculo_detail(id):
         return redirect(url_for('views.veiculos_list'))
     
     servicos = Servico.query.filter_by(veiculo_id=id).order_by(Servico.criado_em.desc()).all()
-    for servico in servicos:
-        servico.status_class = get_status_class(servico.status)
-        servico.status_display = get_status_display(servico.status)
     
     return render_template('veiculo_detail.html', veiculo=veiculo, servicos=servicos)
 
@@ -365,10 +357,6 @@ def servicos_list():
     else:  # gerente
         servicos = Servico.query.order_by(Servico.criado_em.desc()).all()
     
-    for servico in servicos:
-        servico.status_class = get_status_class(servico.status)
-        servico.status_display = get_status_display(servico.status)
-    
     return render_template('servicos_list.html', servicos=servicos)
 
 
@@ -381,9 +369,10 @@ def servico_create():
             veiculo_id=int(request.form.get('veiculo_id')),
             descricao=request.form.get('descricao'),
             observacoes=request.form.get('observacoes'),
-            data_entrada=datetime.strptime(request.form.get('data_entrada'), '%Y-%m-%d'),
             status=StatusServico[request.form.get('status', 'AGUARDANDO_ORCAMENTO').upper()]
         )
+        
+        # Data de entrada (criado_em) será automaticamente definida pelo model
         
         if request.form.get('data_previsao'):
             servico.data_previsao = datetime.strptime(request.form.get('data_previsao'), '%Y-%m-%d')
@@ -403,7 +392,7 @@ def servico_create():
     else:
         veiculos = Veiculo.query.all()
     
-    mecanicos = Usuario.query.filter_by(tipo='mecanico').all()
+    mecanicos = Usuario.query.filter_by(tipo=TipoUsuario.MECANICO).all()
     
     return render_template('servico_form.html', 
                          servico=None, 
@@ -428,10 +417,7 @@ def servico_detail(id):
         flash('Você não tem permissão para ver este serviço', 'danger')
         return redirect(url_for('views.servicos_list'))
     
-    servico.status_class = get_status_class(servico.status)
-    servico.status_display = get_status_display(servico.status)
-    
-    orcamentos = Orcamento.query.filter_by(servico_id=id).order_by(Orcamento.data_orcamento.desc()).all()
+    orcamentos = Orcamento.query.filter_by(servico_id=id).order_by(Orcamento.criado_em.desc()).all()
     
     return render_template('servico_detail.html', servico=servico, orcamentos=orcamentos)
 
@@ -446,7 +432,6 @@ def servico_edit(id):
         servico.veiculo_id = int(request.form.get('veiculo_id'))
         servico.descricao = request.form.get('descricao')
         servico.observacoes = request.form.get('observacoes')
-        servico.data_entrada = datetime.strptime(request.form.get('data_entrada'), '%Y-%m-%d')
         servico.status = StatusServico[request.form.get('status').upper()]
         
         if request.form.get('data_previsao'):
@@ -461,7 +446,7 @@ def servico_edit(id):
         return redirect(url_for('views.servico_detail', id=id))
     
     veiculos = Veiculo.query.all()
-    mecanicos = Usuario.query.filter_by(tipo='mecanico').all()
+    mecanicos = Usuario.query.filter_by(tipo=TipoUsuario.MECANICO).all()
     
     return render_template('servico_form.html', 
                          servico=servico, 
@@ -477,7 +462,15 @@ def orcamento_create():
     servico = Servico.query.get_or_404(servico_id)
     
     if request.method == 'POST':
-        valor = float(request.form.get('valor'))
+        # Suporta ambos os formatos: valor único ou separado
+        valor_mao_obra = float(request.form.get('valor_mao_obra', 0) or 0)
+        valor_pecas = float(request.form.get('valor_pecas', 0) or 0)
+        valor = float(request.form.get('valor', 0) or 0)
+        
+        # Se valor não foi enviado, calcula a partir dos componentes
+        if valor == 0 and (valor_mao_obra > 0 or valor_pecas > 0):
+            valor = valor_mao_obra + valor_pecas
+        
         descricao = request.form.get('descricao', '')
         
         orcamento = Orcamento(

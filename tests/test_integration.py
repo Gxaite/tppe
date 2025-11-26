@@ -35,29 +35,28 @@ def client(app):
 def usuarios(app):
     """Cria usuários de teste"""
     with app.app_context():
+        from app.models import TipoUsuario
+        
         gerente = Usuario(
             nome='Gerente Teste',
             email='gerente@test.com',
-            telefone='61999999999',
-            tipo_usuario='gerente'
+            tipo=TipoUsuario.GERENTE
         )
-        gerente.definir_senha('senha123')
+        gerente.set_senha('senha123')
         
         mecanico = Usuario(
             nome='Mecânico Teste',
             email='mecanico@test.com',
-            telefone='61988888888',
-            tipo_usuario='mecanico'
+            tipo=TipoUsuario.MECANICO
         )
-        mecanico.definir_senha('senha123')
+        mecanico.set_senha('senha123')
         
         cliente = Usuario(
             nome='Cliente Teste',
             email='cliente@test.com',
-            telefone='61977777777',
-            tipo_usuario='cliente'
+            tipo=TipoUsuario.CLIENTE
         )
-        cliente.definir_senha('senha123')
+        cliente.set_senha('senha123')
         
         db.session.add_all([gerente, mecanico, cliente])
         db.session.commit()
@@ -79,8 +78,7 @@ def veiculo(app, usuarios):
             modelo='Gol',
             ano=2020,
             placa='ABC-1234',
-            cor='Prata',
-            dono_id=cliente.id
+            usuario_id=cliente.id
         )
         db.session.add(veiculo)
         db.session.commit()
@@ -216,13 +214,15 @@ class TestFluxoVeiculos:
         """Testa que cliente só vê seus próprios veículos"""
         # Criar veículo para outro cliente
         with app.app_context():
+            from app.models import TipoUsuario
+            
             outro_cliente = Usuario(
                 nome='Outro Cliente',
                 email='outro@test.com',
                 telefone='61955555555',
-                tipo_usuario='cliente'
+                tipo=TipoUsuario.CLIENTE
             )
-            outro_cliente.definir_senha('senha123')
+            outro_cliente.set_senha('senha123')
             db.session.add(outro_cliente)
             db.session.commit()
             
@@ -232,7 +232,7 @@ class TestFluxoVeiculos:
                 ano=2022,
                 placa='DEF-5555',
                 cor='Preto',
-                dono_id=outro_cliente.id
+                usuario_id=outro_cliente.id
             )
             db.session.add(veiculo_outro)
             db.session.commit()
@@ -359,23 +359,22 @@ class TestFluxoDashboards:
         """Testa se dashboard do cliente mostra estatísticas corretas"""
         # Criar alguns serviços
         with app.app_context():
-            mecanico = Usuario.query.filter_by(tipo_usuario='mecanico').first()
+            from app.models import TipoUsuario
+            mecanico = Usuario.query.filter_by(tipo=TipoUsuario.MECANICO).first()
             veiculo_obj = Veiculo.query.first()
             
             servico1 = Servico(
                 veiculo_id=veiculo_obj.id,
-                mecanico_responsavel_id=mecanico.id,
+                mecanico_id=mecanico.id,
                 descricao='Serviço 1',
-                status=StatusServico.EM_ANDAMENTO,
-                data_entrada=datetime.now()
+                status=StatusServico.EM_ANDAMENTO
             )
             
             servico2 = Servico(
                 veiculo_id=veiculo_obj.id,
-                mecanico_responsavel_id=mecanico.id,
+                mecanico_id=mecanico.id,
                 descricao='Serviço 2',
                 status=StatusServico.CONCLUIDO,
-                data_entrada=datetime.now(),
                 data_conclusao=datetime.now()
             )
             
@@ -398,16 +397,16 @@ class TestFluxoDashboards:
     def test_dashboard_mecanico_mostra_servicos_atribuidos(self, client, usuarios, veiculo, app):
         """Testa se dashboard do mecânico mostra apenas seus serviços"""
         with app.app_context():
-            mecanico = Usuario.query.filter_by(tipo_usuario='mecanico').first()
+            from app.models import TipoUsuario
+            mecanico = Usuario.query.filter_by(tipo=TipoUsuario.MECANICO).first()
             veiculo_obj = Veiculo.query.first()
             
             # Serviço do mecânico
             servico_meu = Servico(
                 veiculo_id=veiculo_obj.id,
-                mecanico_responsavel_id=mecanico.id,
+                mecanico_id=mecanico.id,
                 descricao='Meu Serviço',
-                status=StatusServico.EM_ANDAMENTO,
-                data_entrada=datetime.now()
+                status=StatusServico.EM_ANDAMENTO
             )
             db.session.add(servico_meu)
             db.session.commit()
@@ -425,16 +424,15 @@ class TestFluxoDashboards:
     def test_dashboard_gerente_mostra_visao_geral(self, client, usuarios, veiculo, app):
         """Testa se dashboard do gerente mostra visão geral do sistema"""
         with app.app_context():
-            mecanico = Usuario.query.filter_by(tipo_usuario='mecanico').first()
+            from app.models import TipoUsuario
+            mecanico = Usuario.query.filter_by(tipo=TipoUsuario.MECANICO).first()
             veiculo_obj = Veiculo.query.first()
             
             servico = Servico(
                 veiculo_id=veiculo_obj.id,
-                mecanico_responsavel_id=mecanico.id,
+                mecanico_id=mecanico.id,
                 descricao='Serviço Teste',
                 status=StatusServico.CONCLUIDO,
-                valor_total=500.00,
-                data_entrada=datetime.now(),
                 data_conclusao=datetime.now()
             )
             db.session.add(servico)

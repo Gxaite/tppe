@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.models import db, Veiculo, Usuario
 from app.utils import token_required, requer_tipo_usuario
 
-bp = Blueprint('veiculos', __name__, url_prefix='/veiculos')
+bp = Blueprint('veiculos', __name__)
 
 
 @bp.route('', methods=['GET'])

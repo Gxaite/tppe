@@ -3,57 +3,87 @@
 {% block title %}{{ 'Editar' if veiculo else 'Novo' }} Veículo{% endblock %}
 
 {% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="bi bi-car-front"></i>
+            {{ 'Editar Veículo' if veiculo else 'Novo Veículo' }}
+        </h1>
+        <p class="page-subtitle">
+            {{ 'Atualize as informações do veículo' if veiculo else 'Cadastre um novo veículo para serviços' }}
+        </p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('views.veiculos_list') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
 <div class="row">
-    <div class="col-lg-8 mx-auto">
+    <div class="col-lg-8">
         <div class="card">
             <div class="card-header">
-                <h4 class="mb-0">
-                    <i class="bi bi-car-front"></i>
-                    {{ 'Editar Veículo' if veiculo else 'Cadastrar Novo Veículo' }}
-                </h4>
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Informações do Veículo
+                </h5>
             </div>
             <div class="card-body">
                 <form method="POST"
                     action="{{ url_for('views.veiculo_edit', id=veiculo.id) if veiculo else url_for('views.veiculo_create') }}"
                     id="veiculoForm">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="marca" class="form-label required-field">Marca</label>
-                            <input type="text" class="form-control" id="marca" name="marca"
-                                value="{{ veiculo.marca if veiculo else '' }}" required>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="marca" name="marca"
+                                    value="{{ veiculo.marca if veiculo else '' }}" placeholder="Ex: Toyota" required>
+                                <label for="marca">Marca <span class="text-danger">*</span></label>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="modelo" class="form-label required-field">Modelo</label>
-                            <input type="text" class="form-control" id="modelo" name="modelo"
-                                value="{{ veiculo.modelo if veiculo else '' }}" required>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="modelo" name="modelo"
+                                    value="{{ veiculo.modelo if veiculo else '' }}" placeholder="Ex: Corolla" required>
+                                <label for="modelo">Modelo <span class="text-danger">*</span></label>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="ano" class="form-label required-field">Ano</label>
-                            <input type="number" class="form-control" id="ano" name="ano"
-                                value="{{ veiculo.ano if veiculo else '' }}" min="1900" max="2030" required>
+                    <div class="row g-4 mt-1">
+                        <div class="col-md-4">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="ano" name="ano"
+                                    value="{{ veiculo.ano if veiculo else '' }}" min="1900" max="2030"
+                                    placeholder="2020" required>
+                                <label for="ano">Ano <span class="text-danger">*</span></label>
+                            </div>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="placa" class="form-label required-field">Placa</label>
-                            <input type="text" class="form-control" id="placa" name="placa"
-                                value="{{ veiculo.placa if veiculo else '' }}" placeholder="ABC-1234"
-                                pattern="[A-Z]{3}-[0-9]{4}" style="text-transform: uppercase" required>
-                            <div class="form-text">Formato: ABC-1234</div>
+                        <div class="col-md-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="placa" name="placa"
+                                    value="{{ veiculo.placa if veiculo else '' }}" placeholder="ABC-1234"
+                                    style="text-transform: uppercase" required>
+                                <label for="placa">Placa <span class="text-danger">*</span></label>
+                            </div>
+                            <div class="form-text ps-1">Formato: ABC-1234 ou ABC1D23</div>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="cor" class="form-label required-field">Cor</label>
-                            <input type="text" class="form-control" id="cor" name="cor"
-                                value="{{ veiculo.cor if veiculo else '' }}" required>
+                        <div class="col-md-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="cor" name="cor"
+                                    value="{{ veiculo.cor if veiculo else '' }}" placeholder="Ex: Preto" required>
+                                <label for="cor">Cor <span class="text-danger">*</span></label>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i> Salvar
+                    <div class="form-actions mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i>
+                            {{ 'Atualizar Veículo' if veiculo else 'Cadastrar Veículo' }}
                         </button>
-                        <a href="{{ url_for('views.veiculos_list') }}" class="btn btn-secondary">
+                        <a href="{{ url_for('views.veiculos_list') }}" class="btn btn-outline-secondary btn-lg">
                             <i class="bi bi-x-circle"></i> Cancelar
                         </a>
                     </div>
@@ -61,5 +91,121 @@
             </div>
         </div>
     </div>
+
+    <div class="col-lg-4">
+        <div class="card info-card">
+            <div class="card-body">
+                <div class="info-card-icon">
+                    <i class="bi bi-lightbulb"></i>
+                </div>
+                <h6 class="info-card-title">Dicas de Cadastro</h6>
+                <ul class="info-card-list">
+                    <li>A placa deve ser única no sistema</li>
+                    <li>Formatos aceitos: ABC-1234 (antigo) ou ABC1D23 (Mercosul)</li>
+                    <li>O ano deve estar entre 1900 e 2030</li>
+                    <li>Preencha todos os campos corretamente para facilitar a identificação</li>
+                </ul>
+            </div>
+        </div>
+
+        {% if veiculo %}
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="mb-3">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Informações do Registro
+                </h6>
+                <div class="info-item">
+                    <span class="info-label">Proprietário</span>
+                    <span class="info-value">{{ veiculo.proprietario.nome }}</span>
+                </div>
+                {% if veiculo.servicos %}
+                <div class="info-item">
+                    <span class="info-label">Total de Serviços</span>
+                    <span class="info-value">{{ veiculo.servicos|length }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
+
+<style>
+    .form-floating>.form-control {
+        height: calc(3.5rem + 2px);
+        padding: 1rem 0.75rem;
+    }
+
+    .form-floating>label {
+        padding: 1rem 0.75rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .info-card {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #bae6fd;
+    }
+
+    .info-card-icon {
+        width: 48px;
+        height: 48px;
+        background: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--info-color);
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
+    }
+
+    .info-card-title {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.75rem;
+    }
+
+    .info-card-list {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+
+    .info-card-list li {
+        margin-bottom: 0.5rem;
+    }
+
+    .info-card-list li:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+
+    .info-value {
+        font-weight: 500;
+        color: var(--text-color);
+    }
+</style>
 {% endblock %}

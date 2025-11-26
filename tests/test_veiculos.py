@@ -3,7 +3,7 @@ from app.models import db, Veiculo
 
 def test_criar_veiculo_cliente(client, app, auth_headers_cliente, usuario_cliente):
     """Testa criação de veículo por cliente"""
-    response = client.post('/veiculos', 
+    response = client.post('/api/veiculos', 
         headers=auth_headers_cliente,
         json={
             'placa': 'ABC1234',
@@ -26,12 +26,12 @@ def test_listar_veiculos_cliente(client, app, auth_headers_cliente, usuario_clie
             modelo='Corolla',
             marca='Toyota',
             ano=2019,
-            usuario_id=usuario_cliente.id
+            usuario_id=usuario_cliente['id']
         )
         db.session.add(veiculo)
         db.session.commit()
     
-    response = client.get('/veiculos', headers=auth_headers_cliente)
+    response = client.get('/api/veiculos', headers=auth_headers_cliente)
     assert response.status_code == 200
     data = response.get_json()
     assert len(data['veiculos']) >= 1
@@ -46,13 +46,13 @@ def test_atualizar_veiculo_proprio(client, app, auth_headers_cliente, usuario_cl
             modelo='Gol',
             marca='Volkswagen',
             ano=2018,
-            usuario_id=usuario_cliente.id
+            usuario_id=usuario_cliente['id']
         )
         db.session.add(veiculo)
         db.session.commit()
         veiculo_id = veiculo.id
     
-    response = client.put(f'/veiculos/{veiculo_id}',
+    response = client.put(f'/api/veiculos/{veiculo_id}',
         headers=auth_headers_cliente,
         json={'ano': 2019}
     )
@@ -70,13 +70,13 @@ def test_deletar_veiculo_proprio(client, app, auth_headers_cliente, usuario_clie
             modelo='Uno',
             marca='Fiat',
             ano=2015,
-            usuario_id=usuario_cliente.id
+            usuario_id=usuario_cliente['id']
         )
         db.session.add(veiculo)
         db.session.commit()
         veiculo_id = veiculo.id
     
-    response = client.delete(f'/veiculos/{veiculo_id}', headers=auth_headers_cliente)
+    response = client.delete(f'/api/veiculos/{veiculo_id}', headers=auth_headers_cliente)
     assert response.status_code == 200
 
 
@@ -89,13 +89,13 @@ def test_criar_veiculo_placa_duplicada(client, app, auth_headers_cliente, usuari
             modelo='Palio',
             marca='Fiat',
             ano=2017,
-            usuario_id=usuario_cliente.id
+            usuario_id=usuario_cliente['id']
         )
         db.session.add(veiculo)
         db.session.commit()
     
     # Tentar criar com mesma placa
-    response = client.post('/veiculos',
+    response = client.post('/api/veiculos',
         headers=auth_headers_cliente,
         json={
             'placa': 'JKL3456',

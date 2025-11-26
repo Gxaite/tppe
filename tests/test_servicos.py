@@ -10,13 +10,13 @@ def test_criar_servico_cliente(client, app, auth_headers_cliente, usuario_client
             modelo='Civic',
             marca='Honda',
             ano=2020,
-            usuario_id=usuario_cliente.id
+            usuario_id=usuario_cliente['id']
         )
         db.session.add(veiculo)
         db.session.commit()
         veiculo_id = veiculo.id
     
-    response = client.post('/servicos',
+    response = client.post('/api/servicos',
         headers=auth_headers_cliente,
         json={
             'descricao': 'Troca de óleo',
@@ -38,7 +38,7 @@ def test_listar_servicos_cliente(client, app, auth_headers_cliente, usuario_clie
             modelo='Corolla',
             marca='Toyota',
             ano=2019,
-            usuario_id=usuario_cliente.id
+            usuario_id=usuario_cliente['id']
         )
         db.session.add(veiculo)
         db.session.commit()
@@ -50,7 +50,7 @@ def test_listar_servicos_cliente(client, app, auth_headers_cliente, usuario_clie
         db.session.add(servico)
         db.session.commit()
     
-    response = client.get('/servicos', headers=auth_headers_cliente)
+    response = client.get('/api/servicos', headers=auth_headers_cliente)
     assert response.status_code == 200
     data = response.get_json()
     assert len(data['servicos']) >= 1
@@ -65,7 +65,7 @@ def test_atualizar_servico_gerente(client, app, auth_headers_gerente, usuario_cl
             modelo='Gol',
             marca='Volkswagen',
             ano=2018,
-            usuario_id=usuario_cliente.id
+            usuario_id=usuario_cliente['id']
         )
         db.session.add(veiculo)
         db.session.commit()
@@ -78,7 +78,7 @@ def test_atualizar_servico_gerente(client, app, auth_headers_gerente, usuario_cl
         db.session.commit()
         servico_id = servico.id
     
-    response = client.put(f'/servicos/{servico_id}',
+    response = client.put(f'/api/servicos/{servico_id}',
         headers=auth_headers_gerente,
         json={
             'status': 'em_andamento',
@@ -99,7 +99,7 @@ def test_criar_orcamento_gerente(client, app, auth_headers_gerente, usuario_clie
             modelo='Uno',
             marca='Fiat',
             ano=2015,
-            usuario_id=usuario_cliente.id
+            usuario_id=usuario_cliente['id']
         )
         db.session.add(veiculo)
         db.session.commit()
@@ -112,7 +112,7 @@ def test_criar_orcamento_gerente(client, app, auth_headers_gerente, usuario_clie
         db.session.commit()
         servico_id = servico.id
     
-    response = client.post(f'/servicos/{servico_id}/orcamento',
+    response = client.post(f'/api/servicos/{servico_id}/orcamento',
         headers=auth_headers_gerente,
         json={
             'descricao': 'Pastilhas + discos',

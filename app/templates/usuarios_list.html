@@ -3,25 +3,85 @@
 {% block title %}Usuários{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h2><i class="bi bi-people"></i> Gerenciar Usuários</h2>
+<div class="page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="bi bi-people"></i>
+            Gerenciar Usuários
+        </h1>
+        <p class="page-subtitle">Visualize e gerencie todos os usuários do sistema</p>
     </div>
-    <div class="col-auto">
+    <div class="page-actions">
         <a href="{{ url_for('views.usuario_create') }}" class="btn btn-primary">
             <i class="bi bi-person-plus"></i> Novo Usuário
         </a>
     </div>
 </div>
 
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    {% set gerentes = usuarios|selectattr('tipo_usuario', 'equalto', 'gerente')|list|length %}
+    {% set mecanicos = usuarios|selectattr('tipo_usuario', 'equalto', 'mecanico')|list|length %}
+    {% set clientes = usuarios|selectattr('tipo_usuario', 'equalto', 'cliente')|list|length %}
+
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-body">
+                <div class="stat-icon bg-danger-subtle text-danger">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">{{ gerentes }}</h3>
+                    <p class="stat-label">Gerentes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-body">
+                <div class="stat-icon bg-warning-subtle text-warning">
+                    <i class="bi bi-person-gear"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">{{ mecanicos }}</h3>
+                    <p class="stat-label">Mecânicos</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-body">
+                <div class="stat-icon bg-info-subtle text-info">
+                    <i class="bi bi-person"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value">{{ clientes }}</h3>
+                    <p class="stat-label">Clientes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card">
-    <div class="card-body">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul me-2"></i>
+                Lista de Usuários
+            </h5>
+            <span class="badge bg-primary">{{ usuarios|length }} usuário{{ 's' if usuarios|length > 1 else '' }}</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
+                        <th class="ps-4">ID</th>
+                        <th>Usuário</th>
                         <th>Email</th>
                         <th>Telefone</th>
                         <th>Tipo</th>
@@ -31,17 +91,66 @@
                 <tbody>
                     {% for usuario in usuarios %}
                     <tr>
-                        <td>{{ usuario.id }}</td>
-                        <td>{{ usuario.nome }}</td>
-                        <td>{{ usuario.email }}</td>
-                        <td>{{ usuario.telefone }}</td>
+                        <td class="ps-4">
+                            <span class="fw-semibold text-primary">#{{ usuario.id }}</span>
+                        </td>
+                        <td>
+                            <div class="user-info-cell">
+                                <div class="user-avatar user-avatar-{{ usuario.tipo_usuario }}">
+                                    {% if usuario.tipo_usuario == 'gerente' %}
+                                    <i class="bi bi-person-badge"></i>
+                                    {% elif usuario.tipo_usuario == 'mecanico' %}
+                                    <i class="bi bi-person-gear"></i>
+                                    {% else %}
+                                    <i class="bi bi-person"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="user-details">
+                                    <span class="user-name">{{ usuario.nome }}</span>
+                                    {% if usuario.endereco %}
+                                    <span class="user-location">
+                                        <i class="bi bi-geo-alt"></i>
+                                        {{ usuario.endereco[:30] }}{{ '...' if usuario.endereco|length > 30 else '' }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="mailto:{{ usuario.email }}" class="email-link">
+                                <i class="bi bi-envelope"></i>
+                                {{ usuario.email }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if usuario.telefone %}
+                            <span class="phone-number">
+                                <i class="bi bi-telephone"></i>
+                                {{ usuario.telefone }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
                         <td>
                             <span
-                                class="badge bg-{{ 'danger' if usuario.tipo_usuario == 'gerente' else ('warning' if usuario.tipo_usuario == 'mecanico' else 'info') }}">
-                                {{ usuario.tipo_usuario }}
+                                class="badge badge-{{ 'danger' if usuario.tipo_usuario == 'gerente' else ('warning' if usuario.tipo_usuario == 'mecanico' else 'info') }}">
+                                {% if usuario.tipo_usuario == 'gerente' %}
+                                <i class="bi bi-shield-check"></i>
+                                {% elif usuario.tipo_usuario == 'mecanico' %}
+                                <i class="bi bi-tools"></i>
+                                {% else %}
+                                <i class="bi bi-person-check"></i>
+                                {% endif %}
+                                {{ usuario.tipo_usuario|capitalize }}
                             </span>
                         </td>
-                        <td>{{ usuario.data_cadastro.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            <div class="date-cell">
+                                <span class="date-value">{{ usuario.data_cadastro.strftime('%d/%m/%Y') }}</span>
+                                <span class="date-time">{{ usuario.data_cadastro.strftime('%H:%M') }}</span>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -49,4 +158,157 @@
         </div>
     </div>
 </div>
+
+<style>
+    .stat-card {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-card-body {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .bg-danger-subtle {
+        background: rgba(239, 68, 68, 0.15);
+    }
+
+    .bg-warning-subtle {
+        background: rgba(245, 158, 11, 0.15);
+    }
+
+    .bg-info-subtle {
+        background: rgba(14, 165, 233, 0.15);
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .stat-label {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 0.875rem;
+    }
+
+    .user-info-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .user-avatar-gerente {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--danger-color);
+    }
+
+    .user-avatar-mecanico {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--warning-color);
+    }
+
+    .user-avatar-cliente {
+        background: rgba(14, 165, 233, 0.15);
+        color: var(--info-color);
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .user-location {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .email-link {
+        color: var(--text-color);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.2s;
+    }
+
+    .email-link:hover {
+        color: var(--primary-color);
+    }
+
+    .email-link i {
+        color: var(--text-muted);
+    }
+
+    .phone-number {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-color);
+    }
+
+    .phone-number i {
+        color: var(--text-muted);
+    }
+
+    .date-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+
+    .date-value {
+        font-weight: 500;
+    }
+
+    .date-time {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+</style>
 {% endblock %}

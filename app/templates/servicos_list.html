@@ -3,12 +3,24 @@
 {% block title %}Serviços{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h2><i class="bi bi-wrench"></i> Serviços</h2>
+<div class="page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="bi bi-wrench"></i>
+            Serviços
+        </h1>
+        <p class="page-subtitle">
+            {% if session.get('tipo_usuario') == 'gerente' %}
+            Gerencie todos os serviços da oficina
+            {% elif session.get('tipo_usuario') == 'mecanico' %}
+            Acompanhe os serviços sob sua responsabilidade
+            {% else %}
+            Acompanhe o status dos serviços dos seus veículos
+            {% endif %}
+        </p>
     </div>
     {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] %}
-    <div class="col-auto">
+    <div class="page-actions">
         <a href="{{ url_for('views.servico_create') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Novo Serviço
         </a>
@@ -16,14 +28,23 @@
     {% endif %}
 </div>
 
+{% if servicos %}
 <div class="card">
-    <div class="card-body">
-        {% if servicos %}
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul me-2"></i>
+                Lista de Serviços
+            </h5>
+            <span class="badge bg-primary">{{ servicos|length }} serviço{{ 's' if servicos|length > 1 else '' }}</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th class="ps-4">ID</th>
                         <th>Cliente</th>
                         <th>Veículo</th>
                         <th>Descrição</th>
@@ -32,50 +53,195 @@
                         {% endif %}
                         <th>Status</th>
                         <th>Valor</th>
-                        <th>Data Entrada</th>
-                        <th>Ações</th>
+                        <th>Data</th>
+                        <th class="text-center">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for servico in servicos %}
                     <tr>
-                        <td>#{{ servico.id }}</td>
-                        <td>{{ servico.veiculo.proprietario.nome }}</td>
-                        <td>{{ servico.veiculo.modelo }} - {{ servico.veiculo.placa }}</td>
-                        <td>{{ servico.descricao[:30] }}...</td>
+                        <td class="ps-4">
+                            <span class="fw-semibold text-primary">#{{ servico.id }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-sm">
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                                <span>{{ servico.veiculo.proprietario.nome }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="vehicle-info-cell">
+                                <strong>{{ servico.veiculo.marca }} {{ servico.veiculo.modelo }}</strong>
+                                <span class="vehicle-plate-small">{{ servico.veiculo.placa }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-truncate-2" title="{{ servico.descricao }}">
+                                {{ servico.descricao[:40] }}{{ '...' if servico.descricao|length > 40 else '' }}
+                            </span>
+                        </td>
                         {% if session.get('tipo_usuario') == 'gerente' %}
-                        <td>{{ servico.mecanico.nome if servico.mecanico else '-' }}</td>
+                        <td>
+                            {% if servico.mecanico %}
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-sm bg-warning-subtle text-warning">
+                                    <i class="bi bi-person-gear"></i>
+                                </div>
+                                <span>{{ servico.mecanico.nome }}</span>
+                            </div>
+                            {% else %}
+                            <span class="text-muted">Não atribuído</span>
+                            {% endif %}
+                        </td>
                         {% endif %}
                         <td>
-                            <span class="badge bg-{{ servico.status_class }}">
+                            <span class="badge badge-{{ servico.status_class }}">
                                 {{ servico.status_display }}
                             </span>
                         </td>
-                        <td>R$ {{ "%.2f"|format(servico.valor_total or 0) }}</td>
-                        <td>{{ servico.criado_em.strftime('%d/%m/%Y') }}</td>
-                        <td class="table-actions">
-                            <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
-                                class="btn btn-sm btn-info btn-icon" title="Ver detalhes">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] %}
-                            <a href="{{ url_for('views.servico_edit', id=servico.id) }}"
-                                class="btn btn-sm btn-warning btn-icon" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            {% endif %}
+                        <td>
+                            <span
+                                class="fw-semibold {% if servico.valor_total %}text-success{% else %}text-muted{% endif %}">
+                                R$ {{ "%.2f"|format(servico.valor_total or 0) }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="date-cell">
+                                <span class="date-value">{{ servico.criado_em.strftime('%d/%m/%Y') }}</span>
+                                <span class="date-time">{{ servico.criado_em.strftime('%H:%M') }}</span>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="action-buttons justify-content-center">
+                                <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
+                                    class="btn btn-outline-primary btn-sm" title="Ver detalhes">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] %}
+                                <a href="{{ url_for('views.servico_edit', id=servico.id) }}"
+                                    class="btn btn-outline-warning btn-sm" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-wrench" style="font-size: 4rem; opacity: 0.3;"></i>
-            <p class="text-muted mt-3">Nenhum serviço encontrado</p>
-        </div>
-        {% endif %}
     </div>
 </div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="bi bi-wrench"></i>
+    </div>
+    <h3 class="empty-state-title">Nenhum serviço encontrado</h3>
+    <p class="empty-state-text">
+        {% if session.get('tipo_usuario') == 'cliente' %}
+        Você ainda não possui serviços registrados para seus veículos.
+        {% else %}
+        Nenhum serviço foi registrado ainda. Comece criando um novo serviço.
+        {% endif %}
+    </p>
+    {% if session.get('tipo_usuario') in ['mecanico', 'gerente'] %}
+    <a href="{{ url_for('views.servico_create') }}" class="btn btn-primary btn-lg">
+        <i class="bi bi-plus-circle"></i> Criar Primeiro Serviço
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<style>
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--secondary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: var(--text-muted);
+    }
+
+    .avatar-sm.bg-warning-subtle {
+        background: rgba(245, 158, 11, 0.15);
+    }
+
+    .vehicle-info-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .vehicle-plate-small {
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        background: var(--secondary-color);
+        padding: 0.125rem 0.5rem;
+        border-radius: 4px;
+        width: fit-content;
+    }
+
+    .date-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+
+    .date-value {
+        font-weight: 500;
+    }
+
+    .date-time {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .text-truncate-2 {
+        display: block;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .empty-state-icon {
+        width: 100px;
+        height: 100px;
+        background: var(--secondary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+        color: var(--text-muted);
+    }
+
+    .empty-state-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-text {
+        color: var(--text-muted);
+        max-width: 400px;
+        margin: 0 auto 1.5rem;
+    }
+</style>
 {% endblock %}

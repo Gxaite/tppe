@@ -3,108 +3,292 @@
 {% block title %}{{ 'Editar' if servico else 'Novo' }} Serviço{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-10 mx-auto">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0">
-                    <i class="bi bi-wrench"></i>
-                    {{ 'Editar Serviço' if servico else 'Cadastrar Novo Serviço' }}
-                </h4>
+<div class="page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="bi bi-wrench"></i>
+            {{ 'Editar Serviço' if servico else 'Novo Serviço' }}
+        </h1>
+        <p class="page-subtitle">
+            {{ 'Atualize as informações do serviço #' ~ servico.id if servico else 'Registre um novo serviço para
+            atendimento' }}
+        </p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('views.servicos_list') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<form method="POST"
+    action="{{ url_for('views.servico_edit', id=servico.id) if servico else url_for('views.servico_create') }}"
+    id="servicoForm">
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Informações do Veículo -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-car-front me-2"></i>
+                        Veículo e Responsável
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="veiculo_id" class="form-label">
+                                Veículo <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select form-select-lg" id="veiculo_id" name="veiculo_id" required>
+                                <option value="">Selecione o veículo...</option>
+                                {% for veiculo in veiculos %}
+                                <option value="{{ veiculo.id }}" {% if servico and servico.veiculo_id==veiculo.id
+                                    %}selected{% endif %}>
+                                    {{ veiculo.marca }} {{ veiculo.modelo }} - {{ veiculo.placa }} ({{
+                                    veiculo.proprietario.nome }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if session.get('tipo_usuario') == 'gerente' %}
+                        <div class="col-md-6">
+                            <label for="mecanico_responsavel_id" class="form-label">
+                                Mecânico Responsável
+                            </label>
+                            <select class="form-select form-select-lg" id="mecanico_responsavel_id"
+                                name="mecanico_responsavel_id">
+                                <option value="">Selecione o mecânico...</option>
+                                {% for mecanico in mecanicos %}
+                                <option value="{{ mecanico.id }}" {% if servico and
+                                    servico.mecanico_responsavel_id==mecanico.id %}selected{% endif %}>
+                                    {{ mecanico.nome }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="POST"
-                    action="{{ url_for('views.servico_edit', id=servico.id) if servico else url_for('views.servico_create') }}"
-                    id="servicoForm">
-                    <div class="form-section">
-                        <h5 class="mb-3">Informações do Veículo</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="veiculo_id" class="form-label required-field">Veículo</label>
-                                <select class="form-select" id="veiculo_id" name="veiculo_id" required>
-                                    <option value="">Selecione o veículo...</option>
-                                    {% for veiculo in veiculos %}
-                                    <option value="{{ veiculo.id }}" {% if servico and servico.veiculo_id==veiculo.id
-                                        %}selected{% endif %}>
-                                        {{ veiculo.marca }} {{ veiculo.modelo }} - {{ veiculo.placa }} ({{
-                                        veiculo.proprietario.nome }})
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            {% if session.get('tipo_usuario') == 'gerente' %}
-                            <div class="col-md-6 mb-3">
-                                <label for="mecanico_responsavel_id" class="form-label">Mecânico Responsável</label>
-                                <select class="form-select" id="mecanico_responsavel_id" name="mecanico_responsavel_id">
-                                    <option value="">Selecione o mecânico...</option>
-                                    {% for mecanico in mecanicos %}
-                                    <option value="{{ mecanico.id }}" {% if servico and
-                                        servico.mecanico_responsavel_id==mecanico.id %}selected{% endif %}>
-                                        {{ mecanico.nome }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            {% endif %}
-                        </div>
+
+            <!-- Detalhes do Serviço -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clipboard-data me-2"></i>
+                        Detalhes do Serviço
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label for="descricao" class="form-label">
+                            Descrição do Problema <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="descricao" name="descricao" rows="4"
+                            placeholder="Descreva detalhadamente o problema relatado pelo cliente..."
+                            required>{{ servico.descricao if servico else '' }}</textarea>
                     </div>
 
-                    <div class="form-section">
-                        <h5 class="mb-3">Detalhes do Serviço</h5>
-                        <div class="mb-3">
-                            <label for="descricao" class="form-label required-field">Descrição do Problema</label>
-                            <textarea class="form-control" id="descricao" name="descricao" rows="3"
-                                required>{{ servico.descricao if servico else '' }}</textarea>
-                        </div>
+                    <div class="mb-0">
+                        <label for="observacoes" class="form-label">
+                            Observações Adicionais
+                        </label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="2"
+                            placeholder="Notas internas, peças necessárias, etc...">{{ servico.observacoes if servico else '' }}</textarea>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="mb-3">
-                            <label for="observacoes" class="form-label">Observações</label>
-                            <textarea class="form-control" id="observacoes" name="observacoes"
-                                rows="2">{{ servico.observacoes if servico else '' }}</textarea>
+            <!-- Datas e Status -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        Datas e Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <label for="criado_em" class="form-label">
+                                Data de Entrada <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" class="form-control form-control-lg" id="criado_em" name="criado_em"
+                                value="{{ servico.criado_em.strftime('%Y-%m-%d') if servico else '' }}" required>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="criado_em" class="form-label required-field">Data de Entrada</label>
-                                <input type="date" class="form-control" id="criado_em" name="criado_em"
-                                    value="{{ servico.criado_em.strftime('%Y-%m-%d') if servico else '' }}" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="data_previsao" class="form-label">Previsão de Entrega</label>
-                                <input type="date" class="form-control" id="data_previsao" name="data_previsao"
-                                    value="{{ servico.data_previsao.strftime('%Y-%m-%d') if servico and servico.data_previsao else '' }}">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="status" class="form-label">Status</label>
-                                <select class="form-select" id="status" name="status">
-                                    <option value="aguardando_orcamento" {% if servico and
-                                        servico.status=='aguardando_orcamento' %}selected{% endif %}>Aguardando
-                                        Orçamento</option>
-                                    <option value="orcamento_aprovado" {% if servico and
-                                        servico.status=='orcamento_aprovado' %}selected{% endif %}>Orçamento Aprovado
-                                    </option>
-                                    <option value="em_andamento" {% if servico and servico.status=='em_andamento'
-                                        %}selected{% endif %}>Em Andamento</option>
-                                    <option value="concluido" {% if servico and servico.status=='concluido' %}selected{%
-                                        endif %}>Concluído</option>
-                                    <option value="cancelado" {% if servico and servico.status=='cancelado' %}selected{%
-                                        endif %}>Cancelado</option>
-                                </select>
-                            </div>
+                        <div class="col-md-4">
+                            <label for="data_previsao" class="form-label">
+                                Previsão de Entrega
+                            </label>
+                            <input type="date" class="form-control form-control-lg" id="data_previsao"
+                                name="data_previsao"
+                                value="{{ servico.data_previsao.strftime('%Y-%m-%d') if servico and servico.data_previsao else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">
+                                Status
+                            </label>
+                            <select class="form-select form-select-lg" id="status" name="status">
+                                <option value="aguardando_orcamento" {% if servico and
+                                    servico.status=='aguardando_orcamento' %}selected{% endif %}>
+                                    🟡 Aguardando Orçamento
+                                </option>
+                                <option value="orcamento_aprovado" {% if servico and
+                                    servico.status=='orcamento_aprovado' %}selected{% endif %}>
+                                    ✅ Orçamento Aprovado
+                                </option>
+                                <option value="em_andamento" {% if servico and servico.status=='em_andamento'
+                                    %}selected{% endif %}>
+                                    🔧 Em Andamento
+                                </option>
+                                <option value="concluido" {% if servico and servico.status=='concluido' %}selected{%
+                                    endif %}>
+                                    ✔️ Concluído
+                                </option>
+                                <option value="cancelado" {% if servico and servico.status=='cancelado' %}selected{%
+                                    endif %}>
+                                    ❌ Cancelado
+                                </option>
+                            </select>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i> Salvar
+        <div class="col-lg-4">
+            <!-- Ações -->
+            <div class="card sticky-top" style="top: 100px;">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="bi bi-lightning me-2"></i>
+                        Ações
+                    </h6>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i>
+                            {{ 'Atualizar Serviço' if servico else 'Registrar Serviço' }}
                         </button>
-                        <a href="{{ url_for('views.servicos_list') }}" class="btn btn-secondary">
+                        <a href="{{ url_for('views.servicos_list') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-x-circle"></i> Cancelar
                         </a>
                     </div>
-                </form>
+                </div>
+            </div>
+
+            {% if servico %}
+            <!-- Info do Serviço -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Informações
+                    </h6>
+                    <div class="info-item">
+                        <span class="info-label">ID do Serviço</span>
+                        <span class="info-value">#{{ servico.id }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Cliente</span>
+                        <span class="info-value">{{ servico.veiculo.proprietario.nome }}</span>
+                    </div>
+                    {% if servico.valor_total %}
+                    <div class="info-item">
+                        <span class="info-label">Valor Total</span>
+                        <span class="info-value text-success fw-bold">R$ {{ "%.2f"|format(servico.valor_total) }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Dicas -->
+            <div class="card mt-3 info-card">
+                <div class="card-body">
+                    <div class="info-card-icon">
+                        <i class="bi bi-lightbulb"></i>
+                    </div>
+                    <h6 class="info-card-title">Dicas</h6>
+                    <ul class="info-card-list">
+                        <li>Descreva o problema com o máximo de detalhes</li>
+                        <li>Defina uma previsão realista de entrega</li>
+                        <li>Atualize o status conforme o progresso</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</form>
+
+<style>
+    .form-select-lg,
+    .form-control-lg {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+
+    .info-value {
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+    .info-card {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #bae6fd;
+    }
+
+    .info-card-icon {
+        width: 48px;
+        height: 48px;
+        background: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--info-color);
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
+    }
+
+    .info-card-title {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.75rem;
+    }
+
+    .info-card-list {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+
+    .info-card-list li {
+        margin-bottom: 0.5rem;
+    }
+
+    .info-card-list li:last-child {
+        margin-bottom: 0;
+    }
+</style>
 {% endblock %}

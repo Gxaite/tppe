@@ -1,159 +1,294 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard Gerente{% endblock %}
+{% block title %}Dashboard - Gerente{% endblock %}
+{% block breadcrumb %}Dashboard Gerencial{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h2><i class="bi bi-speedometer2"></i> Painel de Gerência</h2>
-        <p class="text-muted">Bem-vindo, {{ session.get('nome') }}!</p>
-    </div>
-    <div class="col-auto">
-        <a href="{{ url_for('views.usuario_create') }}" class="btn btn-primary">
-            <i class="bi bi-person-plus"></i> Novo Usuário
-        </a>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card card-stats primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1">Total de Clientes</p>
-                        <h3 class="mb-0">{{ stats.total_clientes }}</h3>
-                    </div>
-                    <i class="bi bi-people stat-icon"></i>
-                </div>
-            </div>
+<div class="page-header">
+    <div class="page-header-content">
+        <div>
+            <h1><i class="bi bi-grid-1x2-fill"></i> Painel de Gerência</h1>
+            <p>Bem-vindo de volta, {{ session.get('nome') }}! Aqui está o resumo da sua oficina.</p>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-stats success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1">Receita Mensal</p>
-                        <h3 class="mb-0">R$ {{ "%.2f"|format(stats.receita_mensal) }}</h3>
-                    </div>
-                    <i class="bi bi-currency-dollar stat-icon"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-stats warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1">Serviços Ativos</p>
-                        <h3 class="mb-0">{{ stats.servicos_ativos }}</h3>
-                    </div>
-                    <i class="bi bi-tools stat-icon"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-stats primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1">Veículos Cadastrados</p>
-                        <h3 class="mb-0">{{ stats.total_veiculos }}</h3>
-                    </div>
-                    <i class="bi bi-car-front stat-icon"></i>
-                </div>
-            </div>
+        <div class="page-actions">
+            <a href="{{ url_for('views.usuario_create') }}" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> Novo Usuário
+            </a>
+            <a href="{{ url_for('views.servico_create') }}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Novo Serviço
+            </a>
         </div>
     </div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-lg-8">
-        <div class="card">
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card primary">
+        <div class="stat-card-content">
+            <div class="stat-card-info">
+                <h3>{{ stats.total_clientes }}</h3>
+                <p>Total de Clientes</p>
+            </div>
+            <div class="stat-card-icon">
+                <i class="bi bi-people-fill"></i>
+            </div>
+        </div>
+        <div class="stat-card-trend up">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Clientes ativos</span>
+        </div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-card-content">
+            <div class="stat-card-info">
+                <h3>R$ {{ "%.2f"|format(stats.receita_mensal|default(0)) }}</h3>
+                <p>Receita Mensal</p>
+            </div>
+            <div class="stat-card-icon">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+        </div>
+        <div class="stat-card-trend up">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Este mês</span>
+        </div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-card-content">
+            <div class="stat-card-info">
+                <h3>{{ stats.servicos_ativos }}</h3>
+                <p>Serviços Ativos</p>
+            </div>
+            <div class="stat-card-icon">
+                <i class="bi bi-wrench-adjustable"></i>
+            </div>
+        </div>
+        <div class="stat-card-trend">
+            <i class="bi bi-clock-history"></i>
+            <span>Em andamento</span>
+        </div>
+    </div>
+
+    <div class="stat-card info">
+        <div class="stat-card-content">
+            <div class="stat-card-info">
+                <h3>{{ stats.total_veiculos }}</h3>
+                <p>Veículos Cadastrados</p>
+            </div>
+            <div class="stat-card-icon">
+                <i class="bi bi-car-front-fill"></i>
+            </div>
+        </div>
+        <div class="stat-card-trend">
+            <i class="bi bi-database"></i>
+            <span>No sistema</span>
+        </div>
+    </div>
+</div>
+
+<div class="content-grid">
+    <!-- Main Content -->
+    <div>
+        <!-- Mechanics Performance -->
+        <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Serviços por Mecânico</h5>
+                <h5><i class="bi bi-bar-chart-fill"></i> Desempenho dos Mecânicos</h5>
+                <span class="badge bg-primary">Este mês</span>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 {% if mecanicos_stats %}
-                <div class="table-responsive">
-                    <table class="table">
+                <div class="table-container">
+                    <table class="table table-hover mb-0">
                         <thead>
                             <tr>
                                 <th>Mecânico</th>
-                                <th>Aguardando Orç.</th>
-                                <th>Em Andamento</th>
-                                <th>Concluídos (Mês)</th>
-                                <th>Total</th>
+                                <th class="text-center">Aguardando</th>
+                                <th class="text-center">Em Andamento</th>
+                                <th class="text-center">Concluídos</th>
+                                <th class="text-center">Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for mecanico in mecanicos_stats %}
                             <tr>
-                                <td>{{ mecanico.nome }}</td>
-                                <td><span class="badge bg-warning">{{ mecanico.aguardando }}</span></td>
-                                <td><span class="badge bg-primary">{{ mecanico.em_andamento }}</span></td>
-                                <td><span class="badge bg-success">{{ mecanico.concluidos }}</span></td>
-                                <td><strong>{{ mecanico.total }}</strong></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar sm">{{ mecanico.nome[0]|upper }}</div>
+                                        <span>{{ mecanico.nome }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-warning">{{ mecanico.aguardando }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-info">{{ mecanico.em_andamento }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-success">{{ mecanico.concluidos }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <strong>{{ mecanico.total }}</strong>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
                 {% else %}
-                <p class="text-center text-muted py-3">Nenhum mecânico cadastrado</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-person-x"></i>
+                    </div>
+                    <h4>Nenhum mecânico cadastrado</h4>
+                    <p>Adicione mecânicos para ver o desempenho aqui.</p>
+                    <a href="{{ url_for('views.usuario_create') }}" class="btn btn-primary">
+                        <i class="bi bi-person-plus"></i> Cadastrar Mecânico
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Services -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list-task"></i> Serviços Recentes</h5>
+                <a href="{{ url_for('views.servicos_list') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+            </div>
+            <div class="card-body p-0">
+                {% if servicos %}
+                <div class="table-container">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Veículo</th>
+                                <th>Cliente</th>
+                                <th>Descrição</th>
+                                <th>Status</th>
+                                <th>Valor</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for servico in servicos %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="item-card-icon" style="width: 36px; height: 36px; font-size: 1rem;">
+                                            <i class="bi bi-car-front"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">{{ servico.veiculo.modelo }}</div>
+                                            <small class="text-muted">{{ servico.veiculo.placa }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ servico.veiculo.proprietario.nome }}</td>
+                                <td>
+                                    <span title="{{ servico.descricao }}">
+                                        {{ servico.descricao[:30] }}{% if servico.descricao|length > 30 %}...{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ servico.status_class }}">
+                                        {{ servico.status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if servico.valor %}
+                                    <strong>R$ {{ "%.2f"|format(servico.valor) }}</strong>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
+                                        class="btn btn-sm btn-outline-primary btn-icon" title="Ver detalhes">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                    <h4>Nenhum serviço encontrado</h4>
+                    <p>Os serviços aparecerão aqui quando forem criados.</p>
+                </div>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card">
+    <!-- Sidebar -->
+    <div>
+        <!-- Status Distribution -->
+        <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Distribuição de Status</h5>
+                <h5><i class="bi bi-pie-chart-fill"></i> Status dos Serviços</h5>
             </div>
             <div class="card-body">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Aguardando Orçamento</span>
-                        <span class="badge bg-secondary">{{ stats.status_aguardando }}</span>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="status-dot pending"></span>
+                            Aguardando Orçamento
+                        </span>
+                        <strong>{{ stats.status_aguardando }}</strong>
                     </div>
-                    <div class="progress" style="height: 20px;">
+                    <div class="progress">
                         <div class="progress-bar bg-secondary"
                             style="width: {{ (stats.status_aguardando / stats.total_servicos * 100) if stats.total_servicos > 0 else 0 }}%">
                         </div>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Orçamento Aprovado</span>
-                        <span class="badge bg-info">{{ stats.status_aprovado }}</span>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="status-dot" style="background: var(--info);"></span>
+                            Orçamento Aprovado
+                        </span>
+                        <strong>{{ stats.status_aprovado }}</strong>
                     </div>
-                    <div class="progress" style="height: 20px;">
+                    <div class="progress">
                         <div class="progress-bar bg-info"
                             style="width: {{ (stats.status_aprovado / stats.total_servicos * 100) if stats.total_servicos > 0 else 0 }}%">
                         </div>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Em Andamento</span>
-                        <span class="badge bg-warning">{{ stats.status_andamento }}</span>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="status-dot" style="background: var(--warning);"></span>
+                            Em Andamento
+                        </span>
+                        <strong>{{ stats.status_andamento }}</strong>
                     </div>
-                    <div class="progress" style="height: 20px;">
+                    <div class="progress">
                         <div class="progress-bar bg-warning"
                             style="width: {{ (stats.status_andamento / stats.total_servicos * 100) if stats.total_servicos > 0 else 0 }}%">
                         </div>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Concluído</span>
-                        <span class="badge bg-success">{{ stats.status_concluido }}</span>
+
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="status-dot active"></span>
+                            Concluídos
+                        </span>
+                        <strong>{{ stats.status_concluido }}</strong>
                     </div>
-                    <div class="progress" style="height: 20px;">
+                    <div class="progress">
                         <div class="progress-bar bg-success"
                             style="width: {{ (stats.status_concluido / stats.total_servicos * 100) if stats.total_servicos > 0 else 0 }}%">
                         </div>
@@ -161,55 +296,26 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Serviços Recentes</h5>
-    </div>
-    <div class="card-body">
-        {% if servicos %}
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Veículo</th>
-                        <th>Mecânico</th>
-                        <th>Status</th>
-                        <th>Valor</th>
-                        <th>Data</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for servico in servicos %}
-                    <tr>
-                        <td>{{ servico.veiculo.proprietario.nome }}</td>
-                        <td>{{ servico.veiculo.modelo }} - {{ servico.veiculo.placa }}</td>
-                        <td>{{ servico.mecanico.nome if servico.mecanico else '-' }}</td>
-                        <td>
-                            <span class="badge bg-{{ servico.status_class }}">
-                                {{ servico.status_display }}
-                            </span>
-                        </td>
-                        <td>R$ {{ "%.2f"|format(servico.valor_total or 0) }}</td>
-                        <td>{{ servico.criado_em.strftime('%d/%m/%Y') }}</td>
-                        <td class="table-actions">
-                            <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
-                                class="btn btn-sm btn-info btn-icon">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning-fill"></i> Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('views.servico_create') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Novo Serviço
+                    </a>
+                    <a href="{{ url_for('views.usuario_create') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-person-plus"></i> Novo Usuário
+                    </a>
+                    <a href="{{ url_for('views.veiculos_list') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-car-front"></i> Ver Veículos
+                    </a>
+                </div>
+            </div>
         </div>
-        {% else %}
-        <p class="text-center text-muted py-4">Nenhum serviço registrado</p>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

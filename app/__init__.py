@@ -36,10 +36,10 @@ def create_app(config=None):
         
         app.register_blueprint(views.bp)  # Frontend (HTML)
         app.register_blueprint(auth.bp)   # API
-        app.register_blueprint(usuarios.bp)
-        app.register_blueprint(veiculos.bp)
-        app.register_blueprint(servicos.bp)
-        app.register_blueprint(dashboard.bp)
+        app.register_blueprint(usuarios.bp, url_prefix='/api/usuarios')
+        app.register_blueprint(veiculos.bp, url_prefix='/api/veiculos')
+        app.register_blueprint(servicos.bp, url_prefix='/api/servicos')
+        app.register_blueprint(dashboard.bp, url_prefix='/api/dashboard')
         
         # Criar tabelas
         db.create_all()

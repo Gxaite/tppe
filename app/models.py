@@ -28,8 +28,19 @@ class Usuario(db.Model):
     nome = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     senha_hash = db.Column(db.String(255), nullable=False)
+    telefone = db.Column(db.String(20), nullable=True)
+    endereco = db.Column(db.String(200), nullable=True)
     tipo = db.Column(db.Enum(TipoUsuario), nullable=False, default=TipoUsuario.CLIENTE)
-    criado_em = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    data_cadastro = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Aliases para compatibilidade
+    @property
+    def criado_em(self):
+        return self.data_cadastro
+    
+    @property
+    def tipo_usuario(self):
+        return self.tipo.value
     
     # Relacionamentos
     veiculos = db.relationship('Veiculo', backref='proprietario', lazy=True, cascade='all, delete-orphan')
@@ -48,8 +59,10 @@ class Usuario(db.Model):
             'id': self.id,
             'nome': self.nome,
             'email': self.email,
+            'telefone': self.telefone,
+            'endereco': self.endereco,
             'tipo': self.tipo.value,
-            'criado_em': self.criado_em.isoformat()
+            'data_cadastro': self.data_cadastro.isoformat()
         }
         if include_veiculos:
             data['veiculos'] = [v.to_dict() for v in self.veiculos]
@@ -67,6 +80,7 @@ class Veiculo(db.Model):
     modelo = db.Column(db.String(50), nullable=False)
     marca = db.Column(db.String(50), nullable=False)
     ano = db.Column(db.Integer, nullable=False)
+    cor = db.Column(db.String(30), nullable=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     
@@ -80,6 +94,7 @@ class Veiculo(db.Model):
             'modelo': self.modelo,
             'marca': self.marca,
             'ano': self.ano,
+            'cor': self.cor,
             'usuario_id': self.usuario_id,
             'criado_em': self.criado_em.isoformat()
         }
@@ -96,27 +111,69 @@ class Servico(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     descricao = db.Column(db.Text, nullable=False)
+    observacoes = db.Column(db.Text, nullable=True)
     status = db.Column(db.Enum(StatusServico), nullable=False, default=StatusServico.PENDENTE)
     valor = db.Column(db.Numeric(10, 2), nullable=True)
     veiculo_id = db.Column(db.Integer, db.ForeignKey('veiculos.id'), nullable=False)
     mecanico_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     atualizado_em = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    data_previsao = db.Column(db.DateTime, nullable=True)
     data_conclusao = db.Column(db.DateTime, nullable=True)
     
     # Relacionamentos
     orcamentos = db.relationship('Orcamento', backref='servico', lazy=True, cascade='all, delete-orphan')
     
+    @property
+    def valor_total(self):
+        """Retorna o valor total do serviço incluindo orçamentos"""
+        if self.valor:
+            return float(self.valor)
+        # Soma valores dos orçamentos se não houver valor definido
+        if self.orcamentos:
+            return sum(float(o.valor) for o in self.orcamentos)
+        return 0.0
+    
+    @property
+    def status_display(self):
+        """Retorna o status formatado para exibição"""
+        status_map = {
+            'pendente': 'Pendente',
+            'aguardando_orcamento': 'Aguardando Orçamento',
+            'orcamento_aprovado': 'Orçamento Aprovado',
+            'em_andamento': 'Em Andamento',
+            'concluido': 'Concluído',
+            'cancelado': 'Cancelado'
+        }
+        return status_map.get(self.status.value, self.status.value)
+    
+    @property
+    def status_class(self):
+        """Retorna a classe CSS para o status"""
+        status_class_map = {
+            'pendente': 'warning',
+            'aguardando_orcamento': 'info',
+            'orcamento_aprovado': 'primary',
+            'em_andamento': 'primary',
+            'concluido': 'success',
+            'cancelado': 'danger'
+        }
+        return status_class_map.get(self.status.value, 'secondary')
+    
     def to_dict(self, include_orcamentos=False):
         data = {
             'id': self.id,
             'descricao': self.descricao,
+            'observacoes': self.observacoes,
             'status': self.status.value,
             'valor': float(self.valor) if self.valor else None,
+            'valor_total': self.valor_total,
             'veiculo_id': self.veiculo_id,
             'mecanico_id': self.mecanico_id,
             'criado_em': self.criado_em.isoformat(),
-            'atualizado_em': self.atualizado_em.isoformat()
+            'atualizado_em': self.atualizado_em.isoformat(),
+            'data_previsao': self.data_previsao.isoformat() if self.data_previsao else None,
+            'data_conclusao': self.data_conclusao.isoformat() if self.data_conclusao else None
         }
         if include_orcamentos:
             data['orcamentos'] = [o.to_dict() for o in self.orcamentos]
@@ -135,11 +192,17 @@ class Orcamento(db.Model):
     servico_id = db.Column(db.Integer, db.ForeignKey('servicos.id'), nullable=False)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     
+    @property
+    def valor_total(self):
+        """Alias para valor para compatibilidade"""
+        return float(self.valor)
+    
     def to_dict(self):
         return {
             'id': self.id,
             'descricao': self.descricao,
             'valor': float(self.valor),
+            'valor_total': self.valor_total,
             'servico_id': self.servico_id,
             'criado_em': self.criado_em.isoformat()
         }

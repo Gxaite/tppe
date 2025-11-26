@@ -1,72 +1,90 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard Cliente{% endblock %}
+{% block title %}Dashboard - Cliente{% endblock %}
+{% block breadcrumb %}Meu Painel{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col">
-        <h2><i class="bi bi-speedometer2"></i> Meu Painel</h2>
-        <p class="text-muted">Bem-vindo, {{ session.get('nome') }}!</p>
-    </div>
-    <div class="col-auto">
-        <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Cadastrar Veículo
-        </a>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card card-stats primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1">Meus Veículos</p>
-                        <h3 class="mb-0">{{ stats.total_veiculos }}</h3>
-                    </div>
-                    <i class="bi bi-car-front stat-icon"></i>
-                </div>
-            </div>
+<div class="page-header">
+    <div class="page-header-content">
+        <div>
+            <h1><i class="bi bi-grid-1x2-fill"></i> Meu Painel</h1>
+            <p>Olá, {{ session.get('nome') }}! Acompanhe seus veículos e serviços.</p>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card card-stats warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1">Serviços em Andamento</p>
-                        <h3 class="mb-0">{{ stats.servicos_andamento }}</h3>
-                    </div>
-                    <i class="bi bi-wrench stat-icon"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card card-stats success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-muted mb-1">Serviços Concluídos</p>
-                        <h3 class="mb-0">{{ stats.servicos_concluidos }}</h3>
-                    </div>
-                    <i class="bi bi-check-circle stat-icon"></i>
-                </div>
-            </div>
+        <div class="page-actions">
+            <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-primary">
+                <i class="bi bi-car-front"></i> Cadastrar Veículo
+            </a>
+            <a href="{{ url_for('views.servico_create') }}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Solicitar Serviço
+            </a>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-lg-8">
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card primary">
+        <div class="stat-card-content">
+            <div class="stat-card-info">
+                <h3>{{ stats.total_veiculos }}</h3>
+                <p>Meus Veículos</p>
+            </div>
+            <div class="stat-card-icon">
+                <i class="bi bi-car-front-fill"></i>
+            </div>
+        </div>
+        <div class="stat-card-trend">
+            <i class="bi bi-database"></i>
+            <span>Cadastrados</span>
+        </div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-card-content">
+            <div class="stat-card-info">
+                <h3>{{ stats.servicos_andamento }}</h3>
+                <p>Em Andamento</p>
+            </div>
+            <div class="stat-card-icon">
+                <i class="bi bi-wrench-adjustable"></i>
+            </div>
+        </div>
+        <div class="stat-card-trend">
+            <i class="bi bi-clock-history"></i>
+            <span>Serviços ativos</span>
+        </div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-card-content">
+            <div class="stat-card-info">
+                <h3>{{ stats.servicos_concluidos }}</h3>
+                <p>Concluídos</p>
+            </div>
+            <div class="stat-card-icon">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+        </div>
+        <div class="stat-card-trend up">
+            <i class="bi bi-trophy"></i>
+            <span>Finalizados</span>
+        </div>
+    </div>
+</div>
+
+<div class="content-grid">
+    <!-- Main Content -->
+    <div>
+        <!-- Recent Services -->
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-list-task"></i> Meus Serviços Recentes</h5>
+                <h5><i class="bi bi-list-task"></i> Meus Serviços Recentes</h5>
+                <a href="{{ url_for('views.servicos_list') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 {% if servicos %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
+                <div class="table-container">
+                    <table class="table table-hover mb-0">
                         <thead>
                             <tr>
                                 <th>Veículo</th>
@@ -74,24 +92,46 @@
                                 <th>Status</th>
                                 <th>Valor Total</th>
                                 <th>Data</th>
-                                <th>Ações</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for servico in servicos %}
                             <tr>
-                                <td>{{ servico.veiculo.modelo }} - {{ servico.veiculo.placa }}</td>
-                                <td>{{ servico.descricao[:50] }}...</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="item-card-icon" style="width: 36px; height: 36px; font-size: 1rem;">
+                                            <i class="bi bi-car-front"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">{{ servico.veiculo.modelo }}</div>
+                                            <small class="text-muted">{{ servico.veiculo.placa }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span title="{{ servico.descricao }}">
+                                        {{ servico.descricao[:40] }}{% if servico.descricao|length > 40 %}...{% endif %}
+                                    </span>
+                                </td>
                                 <td>
                                     <span class="badge bg-{{ servico.status_class }}">
                                         {{ servico.status_display }}
                                     </span>
                                 </td>
-                                <td>R$ {{ "%.2f"|format(servico.valor_total or 0) }}</td>
-                                <td>{{ servico.criado_em.strftime('%d/%m/%Y') }}</td>
-                                <td class="table-actions">
+                                <td>
+                                    {% if servico.valor_total %}
+                                    <strong>R$ {{ "%.2f"|format(servico.valor_total) }}</strong>
+                                    {% else %}
+                                    <span class="text-muted">Aguardando orçamento</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ servico.criado_em.strftime('%d/%m/%Y') }}</small>
+                                </td>
+                                <td>
                                     <a href="{{ url_for('views.servico_detail', id=servico.id) }}"
-                                        class="btn btn-sm btn-info btn-icon" title="Ver detalhes">
+                                        class="btn btn-sm btn-outline-primary btn-icon" title="Ver detalhes">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </td>
@@ -101,43 +141,80 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-center text-muted py-4">Nenhum serviço encontrado</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                    <h4>Nenhum serviço encontrado</h4>
+                    <p>Você ainda não solicitou nenhum serviço.</p>
+                    <a href="{{ url_for('views.servico_create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Solicitar Serviço
+                    </a>
+                </div>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card">
+    <!-- Sidebar -->
+    <div>
+        <!-- My Vehicles -->
+        <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-car-front-fill"></i> Meus Veículos</h5>
+                <h5><i class="bi bi-car-front-fill"></i> Meus Veículos</h5>
+                <a href="{{ url_for('views.veiculos_list') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
             </div>
             <div class="card-body">
                 {% if veiculos %}
-                <div class="list-group">
-                    {% for veiculo in veiculos %}
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="mb-1">{{ veiculo.marca }} {{ veiculo.modelo }}</h6>
-                                <p class="mb-1 text-muted small">{{ veiculo.placa }} - {{ veiculo.ano }}</p>
-                            </div>
-                            <a href="{{ url_for('views.veiculo_detail', id=veiculo.id) }}"
-                                class="btn btn-sm btn-outline-primary btn-icon">
-                                <i class="bi bi-eye"></i>
-                            </a>
+                {% for veiculo in veiculos[:5] %}
+                <div class="item-card">
+                    <div class="item-card-icon">
+                        <i class="bi bi-car-front"></i>
+                    </div>
+                    <div class="item-card-content">
+                        <div class="item-card-title">{{ veiculo.marca }} {{ veiculo.modelo }}</div>
+                        <div class="item-card-subtitle">
+                            <i class="bi bi-card-text"></i> {{ veiculo.placa }} • {{ veiculo.ano }}
                         </div>
                     </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="text-center text-muted py-3">
-                    Nenhum veículo cadastrado<br>
-                    <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-sm btn-primary mt-2">
-                        Cadastrar primeiro veículo
+                    <a href="{{ url_for('views.veiculo_detail', id=veiculo.id) }}"
+                        class="btn btn-sm btn-outline-primary btn-icon">
+                        <i class="bi bi-chevron-right"></i>
                     </a>
-                </p>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state py-4">
+                    <div class="empty-state-icon" style="width: 60px; height: 60px;">
+                        <i class="bi bi-car-front"></i>
+                    </div>
+                    <h4 class="h6">Nenhum veículo</h4>
+                    <p class="small">Cadastre seu primeiro veículo</p>
+                    <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus"></i> Adicionar
+                    </a>
+                </div>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning-fill"></i> Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('views.servico_create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Solicitar Serviço
+                    </a>
+                    <a href="{{ url_for('views.veiculo_create') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-car-front"></i> Cadastrar Veículo
+                    </a>
+                    <a href="{{ url_for('views.servicos_list') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-list-task"></i> Histórico Completo
+                    </a>
+                </div>
             </div>
         </div>
     </div>

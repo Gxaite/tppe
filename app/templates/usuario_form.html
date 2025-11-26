@@ -3,63 +3,127 @@
 {% block title %}{{ 'Editar' if usuario else 'Novo' }} Usuário{% endblock %}
 
 {% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">
+            <i class="bi bi-person-plus"></i>
+            {{ 'Editar Usuário' if usuario else 'Novo Usuário' }}
+        </h1>
+        <p class="page-subtitle">
+            {{ 'Atualize as informações do usuário' if usuario else 'Cadastre um novo usuário no sistema' }}
+        </p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('views.usuarios_list') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
 <div class="row">
-    <div class="col-lg-8 mx-auto">
+    <div class="col-lg-8">
         <div class="card">
             <div class="card-header">
-                <h4 class="mb-0">
-                    <i class="bi bi-person-plus"></i>
-                    {{ 'Editar Usuário' if usuario else 'Cadastrar Novo Usuário' }}
-                </h4>
+                <h5 class="mb-0">
+                    <i class="bi bi-person-vcard me-2"></i>
+                    Informações do Usuário
+                </h5>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('views.usuario_create') }}" id="usuarioForm">
-                    <div class="mb-3">
-                        <label for="nome" class="form-label required-field">Nome Completo</label>
-                        <input type="text" class="form-control" id="nome" name="nome"
-                            value="{{ usuario.nome if usuario else '' }}" required>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label required-field">Email</label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                value="{{ usuario.email if usuario else '' }}" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="telefone" class="form-label required-field">Telefone</label>
-                            <input type="tel" class="form-control" id="telefone" name="telefone"
-                                value="{{ usuario.telefone if usuario else '' }}" required>
+                    <!-- Nome -->
+                    <div class="mb-4">
+                        <label for="nome" class="form-label">
+                            Nome Completo <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text" class="form-control" id="nome" name="nome"
+                                value="{{ usuario.nome if usuario else '' }}" placeholder="Digite o nome completo"
+                                required>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="tipo_usuario" class="form-label required-field">Tipo de Usuário</label>
-                            <select class="form-select" id="tipo_usuario" name="tipo_usuario" required>
-                                <option value="">Selecione...</option>
+                    <!-- Email e Telefone -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">
+                                Email <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" id="email" name="email"
+                                    value="{{ usuario.email if usuario else '' }}" placeholder="email@exemplo.com"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telefone" class="form-label">
+                                Telefone <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+                                <input type="tel" class="form-control" id="telefone" name="telefone"
+                                    value="{{ usuario.telefone if usuario else '' }}" placeholder="(00) 00000-0000"
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tipo e Senha -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="tipo_usuario" class="form-label">
+                                Tipo de Usuário <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select form-select-lg" id="tipo_usuario" name="tipo_usuario" required>
+                                <option value="">Selecione o tipo...</option>
                                 <option value="cliente" {% if usuario and usuario.tipo_usuario=='cliente' %}selected{%
-                                    endif %}>Cliente</option>
+                                    endif %}>
+                                    👤 Cliente
+                                </option>
                                 <option value="mecanico" {% if usuario and usuario.tipo_usuario=='mecanico' %}selected{%
-                                    endif %}>Mecânico</option>
+                                    endif %}>
+                                    🔧 Mecânico
+                                </option>
                                 <option value="gerente" {% if usuario and usuario.tipo_usuario=='gerente' %}selected{%
-                                    endif %}>Gerente</option>
+                                    endif %}>
+                                    👑 Gerente
+                                </option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="senha" class="form-label {{ 'required-field' if not usuario else '' }}">
-                                Senha {{ '(deixe em branco para não alterar)' if usuario else '' }}
+                        <div class="col-md-6">
+                            <label for="senha" class="form-label">
+                                Senha {{ '' if not usuario else '(deixe em branco para manter)' }}
+                                {% if not usuario %}<span class="text-danger">*</span>{% endif %}
                             </label>
-                            <input type="password" class="form-control" id="senha" name="senha"
-                                placeholder="Mínimo 6 caracteres" minlength="6" {{ 'required' if not usuario else '' }}>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="senha" name="senha"
+                                    placeholder="Mínimo 6 caracteres" minlength="6" {{ 'required' if not usuario else ''
+                                    }}>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                    <i class="bi bi-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i> Salvar
+                    <div class="form-actions pt-3 border-top">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle"></i>
+                            {{ 'Atualizar Usuário' if usuario else 'Cadastrar Usuário' }}
                         </button>
-                        <a href="{{ url_for('views.usuarios_list') }}" class="btn btn-secondary">
+                        <a href="{{ url_for('views.usuarios_list') }}" class="btn btn-outline-secondary btn-lg">
                             <i class="bi bi-x-circle"></i> Cancelar
                         </a>
                     </div>
@@ -67,5 +131,174 @@
             </div>
         </div>
     </div>
+
+    <div class="col-lg-4">
+        <!-- Tipos de Usuário -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-people me-2"></i>
+                    Tipos de Usuário
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="user-type-item">
+                    <div class="user-type-icon user-type-cliente">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div class="user-type-info">
+                        <strong>Cliente</strong>
+                        <small>Pode visualizar seus veículos e acompanhar serviços</small>
+                    </div>
+                </div>
+                <div class="user-type-item">
+                    <div class="user-type-icon user-type-mecanico">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <div class="user-type-info">
+                        <strong>Mecânico</strong>
+                        <small>Gerencia serviços e atualiza status dos trabalhos</small>
+                    </div>
+                </div>
+                <div class="user-type-item border-0">
+                    <div class="user-type-icon user-type-gerente">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div class="user-type-info">
+                        <strong>Gerente</strong>
+                        <small>Acesso completo ao sistema e gestão de usuários</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dicas -->
+        <div class="card mt-3 info-card">
+            <div class="card-body">
+                <div class="info-card-icon">
+                    <i class="bi bi-lightbulb"></i>
+                </div>
+                <h6 class="info-card-title">Dicas</h6>
+                <ul class="info-card-list">
+                    <li>O email será usado para login</li>
+                    <li>A senha deve ter no mínimo 6 caracteres</li>
+                    <li>Escolha o tipo de usuário adequado às permissões necessárias</li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .user-type-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .user-type-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .user-type-cliente {
+        background: rgba(14, 165, 233, 0.15);
+        color: var(--info-color);
+    }
+
+    .user-type-mecanico {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--warning-color);
+    }
+
+    .user-type-gerente {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--danger-color);
+    }
+
+    .user-type-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-type-info strong {
+        color: var(--text-color);
+    }
+
+    .user-type-info small {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+    }
+
+    .info-card {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #bae6fd;
+    }
+
+    .info-card-icon {
+        width: 48px;
+        height: 48px;
+        background: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--info-color);
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
+    }
+
+    .info-card-title {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.75rem;
+    }
+
+    .info-card-list {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+
+    .info-card-list li {
+        margin-bottom: 0.5rem;
+    }
+
+    .info-card-list li:last-child {
+        margin-bottom: 0;
+    }
+</style>
+
+<script>
+    function togglePassword() {
+        const senhaInput = document.getElementById('senha');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        if (senhaInput.type === 'password') {
+            senhaInput.type = 'text';
+            toggleIcon.classList.remove('bi-eye');
+            toggleIcon.classList.add('bi-eye-slash');
+        } else {
+            senhaInput.type = 'password';
+            toggleIcon.classList.remove('bi-eye-slash');
+            toggleIcon.classList.add('bi-eye');
+        }
+    }
+</script>
 {% endblock %}

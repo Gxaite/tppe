@@ -1,6 +1,6 @@
 import pytest
 from app import create_app
-from app.models import db, Usuario, Veiculo, Servico, Orcamento
+from app.models import db, Usuario, Veiculo, Servico, Orcamento, TipoUsuario
 
 
 @pytest.fixture
@@ -39,12 +39,19 @@ def usuario_cliente(app):
         usuario = Usuario(
             nome='Cliente Teste',
             email='cliente@teste.com',
-            tipo='cliente'
+            tipo=TipoUsuario.CLIENTE
         )
         usuario.set_senha('senha123')
         db.session.add(usuario)
         db.session.commit()
-        return usuario
+        
+        # Retorna dados como dicionário para evitar problemas de detached session
+        return {
+            'id': usuario.id,
+            'nome': usuario.nome,
+            'email': usuario.email,
+            'tipo': usuario.tipo.value
+        }
 
 
 @pytest.fixture
@@ -54,12 +61,18 @@ def usuario_gerente(app):
         usuario = Usuario(
             nome='Gerente Teste',
             email='gerente@teste.com',
-            tipo='gerente'
+            tipo=TipoUsuario.GERENTE
         )
         usuario.set_senha('senha123')
         db.session.add(usuario)
         db.session.commit()
-        return usuario
+        
+        return {
+            'id': usuario.id,
+            'nome': usuario.nome,
+            'email': usuario.email,
+            'tipo': usuario.tipo.value
+        }
 
 
 @pytest.fixture
@@ -69,12 +82,18 @@ def usuario_mecanico(app):
         usuario = Usuario(
             nome='Mecânico Teste',
             email='mecanico@teste.com',
-            tipo='mecanico'
+            tipo=TipoUsuario.MECANICO
         )
         usuario.set_senha('senha123')
         db.session.add(usuario)
         db.session.commit()
-        return usuario
+        
+        return {
+            'id': usuario.id,
+            'nome': usuario.nome,
+            'email': usuario.email,
+            'tipo': usuario.tipo.value
+        }
 
 
 @pytest.fixture
