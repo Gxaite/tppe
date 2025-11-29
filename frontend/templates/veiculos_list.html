@@ -54,7 +54,7 @@
         <div class="card-body">
             <div class="vehicles-grid-small">
                 {% for veiculo in grupo.veiculos %}
-                <div class="vehicle-card-compact">
+                <a href="{{ url_for('views.veiculo_detail', id=veiculo.id) }}" class="vehicle-card-compact">
                     <div class="vehicle-icon-small">
                         <i class="bi bi-car-front-fill"></i>
                     </div>
@@ -70,12 +70,11 @@
                         </div>
                     </div>
                     <div class="vehicle-actions-compact">
-                        <a href="{{ url_for('views.veiculo_detail', id=veiculo.id) }}" class="btn btn-sm btn-info"
-                            title="Ver detalhes">
-                            <i class="bi bi-eye"></i>
-                        </a>
+                        <span class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i> Ver
+                        </span>
                     </div>
-                </div>
+                </a>
                 {% endfor %}
             </div>
         </div>
@@ -101,7 +100,7 @@
 {% if veiculos %}
 <div class="vehicles-grid">
     {% for veiculo in veiculos %}
-    <div class="vehicle-card animate-fade-in">
+    <a href="{{ url_for('views.veiculo_detail', id=veiculo.id) }}" class="vehicle-card animate-fade-in">
         <div class="vehicle-card-header">
             <i class="bi bi-car-front-fill vehicle-icon"></i>
             <div class="vehicle-plate">{{ veiculo.placa }}</div>
@@ -154,23 +153,22 @@
             </div>
         </div>
 
-        <div class="card-footer">
+        <div class="card-footer vehicle-card-footer">
             <div class="action-buttons">
-                <a href="{{ url_for('views.veiculo_detail', id=veiculo.id) }}" class="btn btn-sm btn-secondary">
-                    <i class="bi bi-eye"></i> Ver
-                </a>
-                <a href="{{ url_for('views.veiculo_edit', id=veiculo.id) }}" class="btn btn-sm btn-warning">
+                <span class="btn btn-sm btn-secondary">
+                    <i class="bi bi-eye"></i> Ver detalhes
+                </span>
+                <span class="btn btn-sm btn-warning"
+                    onclick="event.preventDefault(); window.location='{{ url_for('views.veiculo_edit', id=veiculo.id) }}'">
                     <i class="bi bi-pencil"></i> Editar
-                </a>
-                <form method="POST" action="{{ url_for('views.veiculo_delete', id=veiculo.id) }}"
-                    onsubmit="return confirm('Tem certeza que deseja excluir este veículo?')" style="display: inline;">
-                    <button type="submit" class="btn btn-sm btn-danger">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </form>
+                </span>
+                <span class="btn btn-sm btn-danger"
+                    onclick="event.preventDefault(); if(confirm('Tem certeza que deseja excluir este veículo?')) { var f = document.createElement('form'); f.method='POST'; f.action='{{ url_for('views.veiculo_delete', id=veiculo.id) }}'; document.body.appendChild(f); f.submit(); }">
+                    <i class="bi bi-trash"></i>
+                </span>
             </div>
         </div>
-    </div>
+    </a>
     {% endfor %}
 </div>
 {% else %}
@@ -201,8 +199,12 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-bottom: 2px solid var(--primary-color);
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--gray-200) 100%);
+        border-bottom: 2px solid var(--primary);
+    }
+
+    [data-theme="dark"] .cliente-header {
+        background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-900) 100%);
     }
 
     .cliente-info {
@@ -214,7 +216,7 @@
     .cliente-avatar {
         width: 45px;
         height: 45px;
-        background: var(--primary-color);
+        background: var(--primary);
         color: white;
         border-radius: 50%;
         display: flex;
@@ -225,7 +227,7 @@
     }
 
     .cliente-detalhes h5 {
-        color: var(--text-color);
+        color: var(--text-primary);
         font-weight: 600;
     }
 
@@ -240,28 +242,43 @@
         align-items: center;
         gap: 1rem;
         padding: 1rem;
-        background: #fafafa;
+        background: var(--bg-secondary);
         border-radius: var(--border-radius);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--gray-200);
         transition: all 0.2s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    [data-theme="dark"] .vehicle-card-compact {
+        background: var(--gray-800);
+        border-color: var(--gray-700);
     }
 
     .vehicle-card-compact:hover {
-        background: white;
-        box-shadow: var(--shadow-sm);
-        border-color: var(--primary-color);
+        background: var(--bg-primary);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary);
+        text-decoration: none;
+        transform: translateX(4px);
+    }
+
+    [data-theme="dark"] .vehicle-card-compact:hover {
+        background: var(--gray-700);
     }
 
     .vehicle-icon-small {
         width: 50px;
         height: 50px;
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
         border-radius: var(--border-radius);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-size: 1.5rem;
+        flex-shrink: 0;
     }
 
     .vehicle-info-compact {
@@ -272,16 +289,22 @@
         font-family: 'Courier New', monospace;
         font-weight: 700;
         font-size: 1rem;
-        background: var(--secondary-color);
+        background: var(--gray-200);
+        color: var(--text-primary);
         padding: 0.15rem 0.5rem;
         border-radius: 4px;
         display: inline-block;
         margin-bottom: 0.25rem;
     }
 
+    [data-theme="dark"] .vehicle-plate-compact {
+        background: var(--gray-700);
+        color: var(--text-primary);
+    }
+
     .vehicle-model-compact {
         font-weight: 600;
-        color: var(--text-color);
+        color: var(--text-primary);
         font-size: 0.95rem;
     }
 
@@ -302,6 +325,15 @@
     .vehicle-actions-compact {
         display: flex;
         gap: 0.5rem;
+    }
+
+    .vehicle-actions-compact .btn {
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+    .vehicle-card-compact:hover .vehicle-actions-compact .btn {
+        opacity: 1;
     }
 
     @media (max-width: 768px) {

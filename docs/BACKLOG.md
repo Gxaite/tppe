@@ -8,33 +8,6 @@ Sistema web para gerenciamento de oficina mecânica que permite a clientes solic
 
 ## Épicos
 
-```mermaid
-mindmap
-  root((Sistema Oficina))
-    Autenticação
-      Login
-      Registro
-      Controle de Acesso
-    Usuários
-      CRUD Clientes
-      CRUD Mecânicos
-      CRUD Gerentes
-    Veículos
-      Cadastro
-      Listagem
-      Histórico
-    Serviços
-      Solicitação
-      Orçamentos
-      Atribuição
-      Acompanhamento
-    Dashboard
-      Estatísticas
-      Relatórios
-      Alertas
-```
-
----
 
 ## User Stories por Sprint
 
@@ -303,64 +276,3 @@ mindmap
 **Pontos:** 5 | **Prioridade:** Alta
 
 ---
-
-## Métricas do Projeto
-
-```mermaid
-pie title Status das User Stories
-    "Completas" : 15
-    "Em Andamento" : 1
-    "Pendentes" : 2
-```
-
-| Métrica | Valor |
-|---------|-------|
-| Total de User Stories | 17 |
-| Completas | 15 (88%) |
-| Em Andamento | 1 (6%) |
-| Pendentes | 2 (12%) |
-| Total de Testes | 99 |
-| Cobertura de Código | 79% |
-| Erros de Lint | 0 |
-
----
-
-## Fluxo de Desenvolvimento
-
-```mermaid
-flowchart LR
-    A[Backlog] --> B[Sprint Planning]
-    B --> C[Desenvolvimento]
-    C --> D[Code Review]
-    D --> E[Testes]
-    E --> F{Passou?}
-    F -->|Sim| G[Deploy]
-    F -->|Não| C
-    G --> H[Produção]
-```
-
----
-
-## Roadmap
-
-```mermaid
-gantt
-    title Roadmap do Projeto
-    dateFormat  YYYY-MM-DD
-    section PC1
-    Setup Docker           :done, 2025-11-01, 3d
-    Models SQLAlchemy      :done, 2025-11-04, 2d
-    Autenticação JWT       :done, 2025-11-06, 2d
-    CRUD Básico            :done, 2025-11-08, 3d
-    Documentação           :done, 2025-11-11, 2d
-    section PC2
-    CRUD Completo          :done, 2025-11-13, 3d
-    Orçamentos             :done, 2025-11-16, 2d
-    Testes Unitários       :done, 2025-11-18, 3d
-    Testes Integração      :done, 2025-11-21, 2d
-    Lint e Clean Code      :done, 2025-11-23, 2d
-    section PC3
-    Frontend Jinja2        :done, 2025-11-25, 3d
-    Testes E2E             :active, 2025-11-28, 3d
-    Deploy Heroku          :2025-12-01, 2d
-```

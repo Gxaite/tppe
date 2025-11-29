@@ -25,7 +25,7 @@ from selenium.common.exceptions import (
     TimeoutException,
     NoSuchElementException,
     ElementClickInterceptedException,
-    StaleElementReferenceException
+    StaleElementReferenceException,
 )
 
 
@@ -50,16 +50,13 @@ def driver():
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
 
-    driver = webdriver.Remote(
-        command_executor=SELENIUM_URL,
-        options=chrome_options
-    )
+    driver = webdriver.Remote(command_executor=SELENIUM_URL, options=chrome_options)
     driver.implicitly_wait(5)
-    
+
     # Garantir logout antes de cada teste
     driver.get(f"{BASE_URL}/logout")
     time.sleep(0.3)
-    
+
     yield driver
     driver.quit()
 
@@ -73,9 +70,7 @@ def wait_for(driver, by, value, timeout=10):
 
 def wait_clickable(driver, by, value, timeout=10):
     """Espera elemento clicável"""
-    return WebDriverWait(driver, timeout).until(
-        EC.element_to_be_clickable((by, value))
-    )
+    return WebDriverWait(driver, timeout).until(EC.element_to_be_clickable((by, value)))
 
 
 def wait_url(driver, text, timeout=10):
@@ -125,6 +120,7 @@ def logout(driver):
 
 # ============= AUTENTICAÇÃO =============
 
+
 class TestAutenticacao:
     """Testes de login/logout"""
 
@@ -169,6 +165,7 @@ class TestAutenticacao:
 
 # ============= REGISTRO =============
 
+
 class TestRegistro:
     """Testes de registro de novos usuários"""
 
@@ -176,7 +173,7 @@ class TestRegistro:
         """Página de registro carrega com todos os campos"""
         driver.get(f"{BASE_URL}/register")
         time.sleep(0.5)
-        
+
         assert driver.find_element(By.ID, "nome").is_displayed()
         assert driver.find_element(By.ID, "email").is_displayed()
         assert driver.find_element(By.ID, "telefone").is_displayed()
@@ -187,17 +184,17 @@ class TestRegistro:
         """Registro com email inválido não submete"""
         driver.get(f"{BASE_URL}/register")
         time.sleep(0.5)
-        
+
         driver.find_element(By.ID, "nome").send_keys("Teste Usuario")
         driver.find_element(By.ID, "email").send_keys("email-invalido")
         driver.find_element(By.ID, "telefone").send_keys("61999999999")
         driver.find_element(By.ID, "senha").send_keys("senha123")
         driver.find_element(By.ID, "senha_confirm").send_keys("senha123")
-        
+
         btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
         scroll_and_click(driver, btn)
         time.sleep(0.5)
-        
+
         # Deve permanecer na página de registro (validação JS)
         assert "/register" in driver.current_url
 
@@ -205,17 +202,19 @@ class TestRegistro:
         """Registro com telefone inválido não submete"""
         driver.get(f"{BASE_URL}/register")
         time.sleep(0.5)
-        
+
         driver.find_element(By.ID, "nome").send_keys("Teste Usuario")
-        driver.find_element(By.ID, "email").send_keys(f"teste_{uuid.uuid4().hex[:6]}@email.com")
+        driver.find_element(By.ID, "email").send_keys(
+            f"teste_{uuid.uuid4().hex[:6]}@email.com"
+        )
         driver.find_element(By.ID, "telefone").send_keys("1234")  # Menos de 11 dígitos
         driver.find_element(By.ID, "senha").send_keys("senha123")
         driver.find_element(By.ID, "senha_confirm").send_keys("senha123")
-        
+
         btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
         scroll_and_click(driver, btn)
         time.sleep(0.5)
-        
+
         # Deve permanecer na página (validação JS)
         assert "/register" in driver.current_url
 
@@ -223,17 +222,19 @@ class TestRegistro:
         """Registro com senhas diferentes não submete"""
         driver.get(f"{BASE_URL}/register")
         time.sleep(0.5)
-        
+
         driver.find_element(By.ID, "nome").send_keys("Teste Usuario")
-        driver.find_element(By.ID, "email").send_keys(f"teste_{uuid.uuid4().hex[:6]}@email.com")
+        driver.find_element(By.ID, "email").send_keys(
+            f"teste_{uuid.uuid4().hex[:6]}@email.com"
+        )
         driver.find_element(By.ID, "telefone").send_keys("61999999999")
         driver.find_element(By.ID, "senha").send_keys("senha123")
         driver.find_element(By.ID, "senha_confirm").send_keys("outrasenha")
-        
+
         btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
         scroll_and_click(driver, btn)
         time.sleep(0.5)
-        
+
         # Deve permanecer na página
         assert "/register" in driver.current_url
 
@@ -241,45 +242,54 @@ class TestRegistro:
         """Máscara de telefone formata corretamente"""
         driver.get(f"{BASE_URL}/register")
         time.sleep(0.5)
-        
+
         telefone = driver.find_element(By.ID, "telefone")
         telefone.send_keys("61999887766")
         time.sleep(0.3)
-        
+
         # Verifica se a máscara aplicou formato (XX) XXXXX-XXXX
         valor = telefone.get_attribute("value")
-        assert "(" in valor or len(valor.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")) == 11
+        assert (
+            "(" in valor
+            or len(
+                valor.replace(" ", "")
+                .replace("-", "")
+                .replace("(", "")
+                .replace(")", "")
+            )
+            == 11
+        )
 
     def test_registro_cliente_sucesso(self, driver):
         """Registro de cliente com dados válidos funciona"""
         driver.get(f"{BASE_URL}/register")
         time.sleep(0.5)
-        
+
         email_unico = f"e2e_{uuid.uuid4().hex[:8]}@email.com"
-        
+
         # Preencher campos
         nome = driver.find_element(By.ID, "nome")
         nome.clear()
         nome.send_keys("Cliente E2E Teste")
-        
+
         email = driver.find_element(By.ID, "email")
         email.clear()
         email.send_keys(email_unico)
-        
+
         # Telefone - digitar os 11 dígitos e deixar a máscara aplicar
         telefone = driver.find_element(By.ID, "telefone")
         telefone.clear()
         telefone.send_keys("61999887766")
         time.sleep(0.3)  # Esperar máscara aplicar
-        
+
         senha = driver.find_element(By.ID, "senha")
         senha.clear()
         senha.send_keys("senha123")
-        
+
         senha_confirm = driver.find_element(By.ID, "senha_confirm")
         senha_confirm.clear()
         senha_confirm.send_keys("senha123")
-        
+
         # Disparar blur em todos os campos para validação
         driver.execute_script("document.getElementById('nome').blur();")
         driver.execute_script("document.getElementById('email').blur();")
@@ -287,18 +297,23 @@ class TestRegistro:
         driver.execute_script("document.getElementById('senha').blur();")
         driver.execute_script("document.getElementById('senha_confirm').blur();")
         time.sleep(0.3)
-        
+
         btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
         scroll_and_click(driver, btn)
         time.sleep(2)
-        
+
         # Deve redirecionar para login com mensagem de sucesso
         current_url = driver.current_url
         page_source = driver.page_source.lower()
-        assert "/login" in current_url or "sucesso" in page_source or "cadastro realizado" in page_source
+        assert (
+            "/login" in current_url
+            or "sucesso" in page_source
+            or "cadastro realizado" in page_source
+        )
 
 
 # ============= CLIENTE =============
+
 
 class TestCliente:
     """Funcionalidades do cliente"""
@@ -336,7 +351,10 @@ class TestCliente:
         scroll_and_click(driver, btn)
         time.sleep(1)
 
-        assert "veiculos" in driver.current_url.lower() or "sucesso" in driver.page_source.lower()
+        assert (
+            "veiculos" in driver.current_url.lower()
+            or "sucesso" in driver.page_source.lower()
+        )
 
     def test_solicitar_servico_cliente(self, driver):
         """Cliente solicita serviço"""
@@ -348,14 +366,19 @@ class TestCliente:
             select = Select(driver.find_element(By.ID, "veiculo_id"))
             if len(select.options) > 1:
                 select.select_by_index(1)
-                driver.find_element(By.ID, "descricao").send_keys("Revisão completa - Teste Selenium")
+                driver.find_element(By.ID, "descricao").send_keys(
+                    "Revisão completa - Teste Selenium"
+                )
 
                 btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
                 scroll_and_click(driver, btn)
                 time.sleep(1)
-                
+
                 # Deve ir para lista de serviços ou mostrar sucesso
-                assert "servicos" in driver.current_url.lower() or "sucesso" in driver.page_source.lower()
+                assert (
+                    "servicos" in driver.current_url.lower()
+                    or "sucesso" in driver.page_source.lower()
+                )
         except NoSuchElementException:
             pass  # OK se não tiver veículos
 
@@ -370,7 +393,7 @@ class TestCliente:
         login(driver, "cliente")
         driver.get(f"{BASE_URL}/veiculos")
         time.sleep(0.5)
-        
+
         # Tenta clicar no primeiro veículo
         try:
             links = driver.find_elements(By.CSS_SELECTOR, "a[href*='/veiculos/']")
@@ -386,6 +409,7 @@ class TestCliente:
 
 
 # ============= GERENTE =============
+
 
 class TestGerente:
     """Funcionalidades do gerente"""
@@ -422,7 +446,10 @@ class TestGerente:
         scroll_and_click(driver, btn)
         time.sleep(1)
 
-        assert "usuarios" in driver.current_url.lower() or "sucesso" in driver.page_source.lower()
+        assert (
+            "usuarios" in driver.current_url.lower()
+            or "sucesso" in driver.page_source.lower()
+        )
 
     def test_criar_usuario_mecanico_gerente(self, driver):
         """Gerente cria usuário do tipo mecânico"""
@@ -443,7 +470,10 @@ class TestGerente:
         scroll_and_click(driver, btn)
         time.sleep(1)
 
-        assert "usuarios" in driver.current_url.lower() or "sucesso" in driver.page_source.lower()
+        assert (
+            "usuarios" in driver.current_url.lower()
+            or "sucesso" in driver.page_source.lower()
+        )
 
     def test_criar_usuario_gerente_gerente(self, driver):
         """Gerente cria outro usuário gerente"""
@@ -464,7 +494,10 @@ class TestGerente:
         scroll_and_click(driver, btn)
         time.sleep(1)
 
-        assert "usuarios" in driver.current_url.lower() or "sucesso" in driver.page_source.lower()
+        assert (
+            "usuarios" in driver.current_url.lower()
+            or "sucesso" in driver.page_source.lower()
+        )
 
     def test_listar_veiculos_gerente(self, driver):
         """Gerente acessa lista de todos veículos"""
@@ -483,16 +516,16 @@ class TestGerente:
         login(driver, "gerente")
         driver.get(f"{BASE_URL}/servicos")
         time.sleep(0.5)
-        
+
         # Verifica se há serviços na lista
         # Procura por elementos que podem ser links para detalhes
         page_source = driver.page_source
-        
+
         # Se não houver serviços, o teste passa
         if "Nenhum serviço" in page_source or "lista vazia" in page_source.lower():
             assert "/servicos" in driver.current_url
             return
-        
+
         # Tenta clicar no primeiro serviço da lista
         try:
             # Tenta encontrar uma tabela de serviços
@@ -507,12 +540,16 @@ class TestGerente:
                     # Qualquer página de serviços é válida
                     assert "/servicos" in driver.current_url
                     return
-            
+
             # Se não encontrou tabela, procura por cards ou links
             links = driver.find_elements(By.CSS_SELECTOR, "a[href*='/servicos/']")
             for link in links:
                 href = link.get_attribute("href")
-                if "/servicos/" in href and "/novo" not in href and "/solicitar" not in href:
+                if (
+                    "/servicos/" in href
+                    and "/novo" not in href
+                    and "/solicitar" not in href
+                ):
                     parts = href.split("/servicos/")
                     if len(parts) > 1:
                         segment = parts[1].split("/")[0]
@@ -521,7 +558,7 @@ class TestGerente:
                             time.sleep(0.5)
                             assert "/servicos/" in driver.current_url
                             return
-            
+
             # Se chegou aqui, não encontrou nenhum link de serviço
             # O teste passa se estiver na lista de serviços
             assert "/servicos" in driver.current_url
@@ -530,6 +567,7 @@ class TestGerente:
 
 
 # ============= MECÂNICO =============
+
 
 class TestMecanico:
     """Funcionalidades do mecânico"""
@@ -550,14 +588,14 @@ class TestMecanico:
         login(driver, "mecanico")
         driver.get(f"{BASE_URL}/servicos")
         time.sleep(0.5)
-        
+
         # Mecânico só vê serviços atribuídos a ele
         # Se não houver serviços, o teste passa
         page_source = driver.page_source
         if "Nenhum serviço" in page_source or "lista vazia" in page_source.lower():
             assert "/servicos" in driver.current_url
             return
-        
+
         # Tenta acessar detalhes de um serviço
         try:
             # Procura por links ou elementos de serviço
@@ -569,7 +607,7 @@ class TestMecanico:
                     time.sleep(0.5)
                     assert "/servicos" in driver.current_url
                     return
-            
+
             # Procura por cards ou links diretos
             links = driver.find_elements(By.CSS_SELECTOR, "a[href*='/servicos/']")
             for link in links:
@@ -583,7 +621,7 @@ class TestMecanico:
                             time.sleep(0.5)
                             assert "/servicos/" in driver.current_url
                             return
-            
+
             # Se não encontrou serviços, teste passa
             assert "/servicos" in driver.current_url
         except (NoSuchElementException, IndexError):
@@ -591,6 +629,7 @@ class TestMecanico:
 
 
 # ============= NAVEGAÇÃO =============
+
 
 class TestNavegacao:
     """Testes de navegação geral"""
@@ -615,21 +654,22 @@ class TestNavegacao:
     def test_links_navegacao_funcionam(self, driver):
         """Links de navegação redirecionam corretamente"""
         login(driver, "gerente")
-        
+
         # Dashboard -> Serviços
         driver.get(f"{BASE_URL}/servicos")
         assert "/servicos" in driver.current_url
-        
+
         # Serviços -> Usuários
         driver.get(f"{BASE_URL}/usuarios")
         assert "/usuarios" in driver.current_url
-        
+
         # Usuários -> Veículos
         driver.get(f"{BASE_URL}/veiculos")
         assert "/veiculos" in driver.current_url
 
 
 # ============= FLUXOS COMPLETOS =============
+
 
 class TestFluxoCompleto:
     """Fluxos E2E completos"""
@@ -668,8 +708,11 @@ class TestFluxoCompleto:
             btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
             scroll_and_click(driver, btn)
             time.sleep(1)
-            
-            assert "servicos" in driver.current_url.lower() or "sucesso" in driver.page_source.lower()
+
+            assert (
+                "servicos" in driver.current_url.lower()
+                or "sucesso" in driver.page_source.lower()
+            )
         except NoSuchElementException:
             pass
 
@@ -693,39 +736,39 @@ class TestFluxoCompleto:
         """Novo usuário: registro -> login -> dashboard"""
         driver.get(f"{BASE_URL}/register")
         time.sleep(0.5)
-        
+
         email_unico = f"novo_{uuid.uuid4().hex[:8]}@email.com"
-        
+
         # Preencher formulário de registro
         nome = driver.find_element(By.ID, "nome")
         nome.clear()
         nome.send_keys("Novo Usuario E2E")
-        
+
         email = driver.find_element(By.ID, "email")
         email.clear()
         email.send_keys(email_unico)
-        
+
         telefone = driver.find_element(By.ID, "telefone")
         telefone.clear()
         telefone.send_keys("61998877665")
         time.sleep(0.3)
-        
+
         senha = driver.find_element(By.ID, "senha")
         senha.clear()
         senha.send_keys("senha123")
-        
+
         senha_confirm = driver.find_element(By.ID, "senha_confirm")
         senha_confirm.clear()
         senha_confirm.send_keys("senha123")
-        
+
         # Disparar blur para validação
         driver.execute_script("document.getElementById('senha_confirm').blur();")
         time.sleep(0.3)
-        
+
         btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
         scroll_and_click(driver, btn)
         time.sleep(2)
-        
+
         # Verificar se foi para login ou se registro foi bem-sucedido
         if "/login" not in driver.current_url:
             # Se ainda estiver em /register, pode ter havido erro de validação
@@ -733,25 +776,27 @@ class TestFluxoCompleto:
             page_source = driver.page_source.lower()
             if "sucesso" not in page_source and "cadastro realizado" not in page_source:
                 # O registro pode ter falhado, mas isso é aceitável em teste
-                assert "/register" in driver.current_url or "/login" in driver.current_url
+                assert (
+                    "/register" in driver.current_url or "/login" in driver.current_url
+                )
                 return
-        
+
         # Agora faz login com o usuário criado
         driver.get(f"{BASE_URL}/login")
         time.sleep(0.5)
-        
+
         email_input = driver.find_element(By.ID, "email")
         email_input.clear()
         email_input.send_keys(email_unico)
-        
+
         senha_input = driver.find_element(By.ID, "senha")
         senha_input.clear()
         senha_input.send_keys("senha123")
-        
+
         btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
         scroll_and_click(driver, btn)
         time.sleep(1.5)
-        
+
         # Se o registro foi bem-sucedido, deve ir para dashboard
         # Se não, ficará em /login (usuário não existe)
         assert "/dashboard" in driver.current_url or "/login" in driver.current_url

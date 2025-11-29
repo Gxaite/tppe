@@ -5,8 +5,13 @@ Testa os models SQLAlchemy e suas propriedades
 import pytest
 from datetime import datetime
 from app.models import (
-    db, Usuario, Veiculo, Servico, Orcamento,
-    TipoUsuario, StatusServico
+    db,
+    Usuario,
+    Veiculo,
+    Servico,
+    Orcamento,
+    TipoUsuario,
+    StatusServico,
 )
 
 
@@ -17,148 +22,136 @@ class TestUsuarioModel:
         """Testa criação de usuário cliente"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Teste',
-                email='cliente@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Teste", email="cliente@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             assert usuario.id is not None
-            assert usuario.nome == 'Cliente Teste'
+            assert usuario.nome == "Cliente Teste"
             assert usuario.tipo == TipoUsuario.CLIENTE
-            assert usuario.tipo_usuario == 'cliente'
+            assert usuario.tipo_usuario == "cliente"
 
     def test_criar_usuario_mecanico(self, app):
         """Testa criação de usuário mecânico"""
         with app.app_context():
             usuario = Usuario(
-                nome='Mecânico Teste',
-                email='mecanico@test.com',
-                tipo=TipoUsuario.MECANICO
+                nome="Mecânico Teste",
+                email="mecanico@test.com",
+                tipo=TipoUsuario.MECANICO,
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             assert usuario.tipo == TipoUsuario.MECANICO
-            assert usuario.tipo_usuario == 'mecanico'
+            assert usuario.tipo_usuario == "mecanico"
 
     def test_criar_usuario_gerente(self, app):
         """Testa criação de usuário gerente"""
         with app.app_context():
             usuario = Usuario(
-                nome='Gerente Teste',
-                email='gerente@test.com',
-                tipo=TipoUsuario.GERENTE
+                nome="Gerente Teste", email="gerente@test.com", tipo=TipoUsuario.GERENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             assert usuario.tipo == TipoUsuario.GERENTE
-            assert usuario.tipo_usuario == 'gerente'
+            assert usuario.tipo_usuario == "gerente"
 
     def test_verificar_senha_correta(self, app):
         """Testa verificação de senha correta"""
         with app.app_context():
             usuario = Usuario(
-                nome='Teste',
-                email='teste@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Teste", email="teste@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('minhasenha123')
+            usuario.set_senha("minhasenha123")
             db.session.add(usuario)
             db.session.commit()
 
-            assert usuario.verificar_senha('minhasenha123') is True
+            assert usuario.verificar_senha("minhasenha123") is True
 
     def test_verificar_senha_incorreta(self, app):
         """Testa verificação de senha incorreta"""
         with app.app_context():
             usuario = Usuario(
-                nome='Teste',
-                email='teste2@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Teste", email="teste2@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senhaCorreta')
+            usuario.set_senha("senhaCorreta")
             db.session.add(usuario)
             db.session.commit()
 
-            assert usuario.verificar_senha('senhaErrada') is False
+            assert usuario.verificar_senha("senhaErrada") is False
 
     def test_to_dict(self, app):
         """Testa serialização do usuário"""
         with app.app_context():
             usuario = Usuario(
-                nome='Teste Dict',
-                email='dict@test.com',
+                nome="Teste Dict",
+                email="dict@test.com",
                 tipo=TipoUsuario.CLIENTE,
-                telefone='11999999999',
-                endereco='Rua Teste, 123'
+                telefone="11999999999",
+                endereco="Rua Teste, 123",
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             dados = usuario.to_dict()
-            assert dados['nome'] == 'Teste Dict'
-            assert dados['email'] == 'dict@test.com'
-            assert dados['tipo'] == 'cliente'
-            assert dados['telefone'] == '11999999999'
-            assert 'senha_hash' not in dados
+            assert dados["nome"] == "Teste Dict"
+            assert dados["email"] == "dict@test.com"
+            assert dados["tipo"] == "cliente"
+            assert dados["telefone"] == "11999999999"
+            assert "senha_hash" not in dados
 
     def test_to_dict_com_veiculos(self, app):
         """Testa serialização do usuário com veículos"""
         with app.app_context():
             usuario = Usuario(
-                nome='Teste Veiculos',
-                email='veiculos@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Teste Veiculos",
+                email="veiculos@test.com",
+                tipo=TipoUsuario.CLIENTE,
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='TST1234',
-                modelo='Gol',
-                marca='VW',
+                placa="TST1234",
+                modelo="Gol",
+                marca="VW",
                 ano=2020,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             dados = usuario.to_dict(include_veiculos=True)
-            assert 'veiculos' in dados
-            assert len(dados['veiculos']) == 1
+            assert "veiculos" in dados
+            assert len(dados["veiculos"]) == 1
 
     def test_repr(self, app):
         """Testa representação string do usuário"""
         with app.app_context():
             usuario = Usuario(
-                nome='Teste Repr',
-                email='repr@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Teste Repr", email="repr@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
-            assert 'repr@test.com' in repr(usuario)
-            assert 'cliente' in repr(usuario)
+            assert "repr@test.com" in repr(usuario)
+            assert "cliente" in repr(usuario)
 
     def test_criado_em_alias(self, app):
         """Testa alias criado_em para data_cadastro"""
         with app.app_context():
             usuario = Usuario(
-                nome='Teste Alias',
-                email='alias@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Teste Alias", email="alias@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
@@ -174,80 +167,74 @@ class TestVeiculoModel:
         """Testa criação de veículo"""
         with app.app_context():
             usuario = Usuario(
-                nome='Dono',
-                email='dono@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Dono", email="dono@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='ABC1234',
-                modelo='Civic',
-                marca='Honda',
+                placa="ABC1234",
+                modelo="Civic",
+                marca="Honda",
                 ano=2022,
-                cor='Preto',
-                usuario_id=usuario.id
+                cor="Preto",
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             assert veiculo.id is not None
-            assert veiculo.placa == 'ABC1234'
-            assert veiculo.cor == 'Preto'
+            assert veiculo.placa == "ABC1234"
+            assert veiculo.cor == "Preto"
 
     def test_to_dict(self, app):
         """Testa serialização do veículo"""
         with app.app_context():
             usuario = Usuario(
-                nome='Dono Dict',
-                email='dono_dict@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Dono Dict", email="dono_dict@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='DEF5678',
-                modelo='Corolla',
-                marca='Toyota',
+                placa="DEF5678",
+                modelo="Corolla",
+                marca="Toyota",
                 ano=2021,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             dados = veiculo.to_dict()
-            assert dados['placa'] == 'DEF5678'
-            assert dados['modelo'] == 'Corolla'
-            assert dados['marca'] == 'Toyota'
+            assert dados["placa"] == "DEF5678"
+            assert dados["modelo"] == "Corolla"
+            assert dados["marca"] == "Toyota"
 
     def test_repr(self, app):
         """Testa representação string do veículo"""
         with app.app_context():
             usuario = Usuario(
-                nome='Dono Repr',
-                email='dono_repr@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Dono Repr", email="dono_repr@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='GHI9012',
-                modelo='Onix',
-                marca='Chevrolet',
+                placa="GHI9012",
+                modelo="Onix",
+                marca="Chevrolet",
                 ano=2023,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
-            assert 'GHI9012' in repr(veiculo)
-            assert 'Chevrolet' in repr(veiculo)
+            assert "GHI9012" in repr(veiculo)
+            assert "Chevrolet" in repr(veiculo)
 
 
 class TestServicoModel:
@@ -257,28 +244,28 @@ class TestServicoModel:
         """Testa criação de serviço"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Servico',
-                email='cliente_servico@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Servico",
+                email="cliente_servico@test.com",
+                tipo=TipoUsuario.CLIENTE,
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='SRV1234',
-                modelo='Fit',
-                marca='Honda',
+                placa="SRV1234",
+                modelo="Fit",
+                marca="Honda",
                 ano=2020,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             servico = Servico(
-                descricao='Troca de óleo',
+                descricao="Troca de óleo",
                 veiculo_id=veiculo.id,
-                status=StatusServico.PENDENTE
+                status=StatusServico.PENDENTE,
             )
             db.session.add(servico)
             db.session.commit()
@@ -290,93 +277,89 @@ class TestServicoModel:
         """Testa propriedade status_display"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Display',
-                email='display@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Display",
+                email="display@test.com",
+                tipo=TipoUsuario.CLIENTE,
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='DSP1234',
-                modelo='HB20',
-                marca='Hyundai',
+                placa="DSP1234",
+                modelo="HB20",
+                marca="Hyundai",
                 ano=2021,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             servico = Servico(
-                descricao='Teste Display',
+                descricao="Teste Display",
                 veiculo_id=veiculo.id,
-                status=StatusServico.EM_ANDAMENTO
+                status=StatusServico.EM_ANDAMENTO,
             )
             db.session.add(servico)
             db.session.commit()
 
-            assert servico.status_display == 'Em Andamento'
+            assert servico.status_display == "Em Andamento"
 
     def test_status_class(self, app):
         """Testa propriedade status_class"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Class',
-                email='class@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Class", email="class@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='CLS1234',
-                modelo='Sandero',
-                marca='Renault',
+                placa="CLS1234",
+                modelo="Sandero",
+                marca="Renault",
                 ano=2022,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             servico = Servico(
-                descricao='Teste Class',
+                descricao="Teste Class",
                 veiculo_id=veiculo.id,
-                status=StatusServico.CONCLUIDO
+                status=StatusServico.CONCLUIDO,
             )
             db.session.add(servico)
             db.session.commit()
 
-            assert servico.status_class == 'success'
+            assert servico.status_class == "success"
 
     def test_valor_total_com_valor(self, app):
         """Testa cálculo de valor_total com valor definido"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Valor',
-                email='valor@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Valor", email="valor@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='VLR1234',
-                modelo='Polo',
-                marca='VW',
+                placa="VLR1234",
+                modelo="Polo",
+                marca="VW",
                 ano=2020,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             servico = Servico(
-                descricao='Teste Valor',
+                descricao="Teste Valor",
                 veiculo_id=veiculo.id,
                 status=StatusServico.PENDENTE,
-                valor=150.00
+                valor=150.00,
             )
             db.session.add(servico)
             db.session.commit()
@@ -387,41 +370,37 @@ class TestServicoModel:
         """Testa cálculo de valor_total com orçamentos"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Orcamento',
-                email='orcamento@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Orcamento",
+                email="orcamento@test.com",
+                tipo=TipoUsuario.CLIENTE,
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='ORC1234',
-                modelo='Kwid',
-                marca='Renault',
+                placa="ORC1234",
+                modelo="Kwid",
+                marca="Renault",
                 ano=2021,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             servico = Servico(
-                descricao='Teste Orçamento',
+                descricao="Teste Orçamento",
                 veiculo_id=veiculo.id,
-                status=StatusServico.PENDENTE
+                status=StatusServico.PENDENTE,
             )
             db.session.add(servico)
             db.session.commit()
 
             orcamento1 = Orcamento(
-                descricao='Peças',
-                valor=100.00,
-                servico_id=servico.id
+                descricao="Peças", valor=100.00, servico_id=servico.id
             )
             orcamento2 = Orcamento(
-                descricao='Mão de obra',
-                valor=50.00,
-                servico_id=servico.id
+                descricao="Mão de obra", valor=50.00, servico_id=servico.id
             )
             db.session.add_all([orcamento1, orcamento2])
             db.session.commit()
@@ -432,35 +411,35 @@ class TestServicoModel:
         """Testa serialização do serviço"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Dict',
-                email='servico_dict@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Dict",
+                email="servico_dict@test.com",
+                tipo=TipoUsuario.CLIENTE,
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='DCT1234',
-                modelo='Mobi',
-                marca='Fiat',
+                placa="DCT1234",
+                modelo="Mobi",
+                marca="Fiat",
                 ano=2022,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             servico = Servico(
-                descricao='Teste Dict Servico',
+                descricao="Teste Dict Servico",
                 veiculo_id=veiculo.id,
-                status=StatusServico.PENDENTE
+                status=StatusServico.PENDENTE,
             )
             db.session.add(servico)
             db.session.commit()
 
             dados = servico.to_dict()
-            assert dados['descricao'] == 'Teste Dict Servico'
-            assert dados['status'] == 'pendente'
+            assert dados["descricao"] == "Teste Dict Servico"
+            assert dados["status"] == "pendente"
 
 
 class TestOrcamentoModel:
@@ -470,35 +449,30 @@ class TestOrcamentoModel:
         """Testa criação de orçamento"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Orcamento',
-                email='criar_orcamento@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Orcamento",
+                email="criar_orcamento@test.com",
+                tipo=TipoUsuario.CLIENTE,
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='ORC5678',
-                modelo='Argo',
-                marca='Fiat',
+                placa="ORC5678",
+                modelo="Argo",
+                marca="Fiat",
                 ano=2023,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
-            servico = Servico(
-                descricao='Serviço para orçamento',
-                veiculo_id=veiculo.id
-            )
+            servico = Servico(descricao="Serviço para orçamento", veiculo_id=veiculo.id)
             db.session.add(servico)
             db.session.commit()
 
             orcamento = Orcamento(
-                descricao='Orçamento teste',
-                valor=200.00,
-                servico_id=servico.id
+                descricao="Orçamento teste", valor=200.00, servico_id=servico.id
             )
             db.session.add(orcamento)
             db.session.commit()
@@ -510,35 +484,28 @@ class TestOrcamentoModel:
         """Testa propriedade valor_total do orçamento"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente VT',
-                email='vt@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente VT", email="vt@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='VTP1234',
-                modelo='Uno',
-                marca='Fiat',
+                placa="VTP1234",
+                modelo="Uno",
+                marca="Fiat",
                 ano=2019,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
-            servico = Servico(
-                descricao='Serviço VT',
-                veiculo_id=veiculo.id
-            )
+            servico = Servico(descricao="Serviço VT", veiculo_id=veiculo.id)
             db.session.add(servico)
             db.session.commit()
 
             orcamento = Orcamento(
-                descricao='Orçamento VT',
-                valor=350.50,
-                servico_id=servico.id
+                descricao="Orçamento VT", valor=350.50, servico_id=servico.id
             )
             db.session.add(orcamento)
             db.session.commit()
@@ -549,82 +516,68 @@ class TestOrcamentoModel:
         """Testa serialização do orçamento"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente OD',
-                email='od@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente OD", email="od@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='ODT1234',
-                modelo='Compass',
-                marca='Jeep',
+                placa="ODT1234",
+                modelo="Compass",
+                marca="Jeep",
                 ano=2024,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
-            servico = Servico(
-                descricao='Serviço OD',
-                veiculo_id=veiculo.id
-            )
+            servico = Servico(descricao="Serviço OD", veiculo_id=veiculo.id)
             db.session.add(servico)
             db.session.commit()
 
             orcamento = Orcamento(
-                descricao='Orçamento Dict',
-                valor=500.00,
-                servico_id=servico.id
+                descricao="Orçamento Dict", valor=500.00, servico_id=servico.id
             )
             db.session.add(orcamento)
             db.session.commit()
 
             dados = orcamento.to_dict()
-            assert dados['descricao'] == 'Orçamento Dict'
-            assert dados['valor'] == 500.00
-            assert dados['valor_total'] == 500.00
+            assert dados["descricao"] == "Orçamento Dict"
+            assert dados["valor"] == 500.00
+            assert dados["valor_total"] == 500.00
 
     def test_repr(self, app):
         """Testa representação string do orçamento"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Repr',
-                email='orc_repr@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Repr", email="orc_repr@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='REP1234',
-                modelo='Cruze',
-                marca='Chevrolet',
+                placa="REP1234",
+                modelo="Cruze",
+                marca="Chevrolet",
                 ano=2023,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
-            servico = Servico(
-                descricao='Serviço Repr',
-                veiculo_id=veiculo.id
-            )
+            servico = Servico(descricao="Serviço Repr", veiculo_id=veiculo.id)
             db.session.add(servico)
             db.session.commit()
 
             orcamento = Orcamento(
-                descricao='Orçamento Repr',
-                valor=750.00,
-                servico_id=servico.id
+                descricao="Orçamento Repr", valor=750.00, servico_id=servico.id
             )
             db.session.add(orcamento)
             db.session.commit()
 
-            assert '750' in repr(orcamento)
+            assert "750" in repr(orcamento)
 
 
 class TestStatusServico:
@@ -632,50 +585,46 @@ class TestStatusServico:
 
     def test_todos_status(self, app):
         """Testa todos os status disponíveis"""
-        assert StatusServico.PENDENTE.value == 'pendente'
-        assert StatusServico.AGUARDANDO_ORCAMENTO.value == 'aguardando_orcamento'
-        assert StatusServico.ORCAMENTO_APROVADO.value == 'orcamento_aprovado'
-        assert StatusServico.EM_ANDAMENTO.value == 'em_andamento'
-        assert StatusServico.CONCLUIDO.value == 'concluido'
-        assert StatusServico.CANCELADO.value == 'cancelado'
+        assert StatusServico.PENDENTE.value == "pendente"
+        assert StatusServico.AGUARDANDO_ORCAMENTO.value == "aguardando_orcamento"
+        assert StatusServico.ORCAMENTO_APROVADO.value == "orcamento_aprovado"
+        assert StatusServico.EM_ANDAMENTO.value == "em_andamento"
+        assert StatusServico.CONCLUIDO.value == "concluido"
+        assert StatusServico.CANCELADO.value == "cancelado"
 
     def test_status_display_todos(self, app):
         """Testa status_display para todos os status"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Status',
-                email='status@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Status", email="status@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='STT1234',
-                modelo='Tracker',
-                marca='Chevrolet',
+                placa="STT1234",
+                modelo="Tracker",
+                marca="Chevrolet",
                 ano=2024,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             # Testar cada status
             status_esperados = {
-                StatusServico.PENDENTE: 'Pendente',
-                StatusServico.AGUARDANDO_ORCAMENTO: 'Aguardando Orçamento',
-                StatusServico.ORCAMENTO_APROVADO: 'Orçamento Aprovado',
-                StatusServico.EM_ANDAMENTO: 'Em Andamento',
-                StatusServico.CONCLUIDO: 'Concluído',
-                StatusServico.CANCELADO: 'Cancelado'
+                StatusServico.PENDENTE: "Pendente",
+                StatusServico.AGUARDANDO_ORCAMENTO: "Aguardando Orçamento",
+                StatusServico.ORCAMENTO_APROVADO: "Orçamento Aprovado",
+                StatusServico.EM_ANDAMENTO: "Em Andamento",
+                StatusServico.CONCLUIDO: "Concluído",
+                StatusServico.CANCELADO: "Cancelado",
             }
 
             for i, (status, display) in enumerate(status_esperados.items()):
                 servico = Servico(
-                    descricao=f'Teste status {i}',
-                    veiculo_id=veiculo.id,
-                    status=status
+                    descricao=f"Teste status {i}", veiculo_id=veiculo.id, status=status
                 )
                 db.session.add(servico)
                 db.session.commit()
@@ -686,38 +635,34 @@ class TestStatusServico:
         """Testa status_class para todos os status"""
         with app.app_context():
             usuario = Usuario(
-                nome='Cliente Class',
-                email='class2@test.com',
-                tipo=TipoUsuario.CLIENTE
+                nome="Cliente Class", email="class2@test.com", tipo=TipoUsuario.CLIENTE
             )
-            usuario.set_senha('senha123')
+            usuario.set_senha("senha123")
             db.session.add(usuario)
             db.session.commit()
 
             veiculo = Veiculo(
-                placa='CLS5678',
-                modelo='Renegade',
-                marca='Jeep',
+                placa="CLS5678",
+                modelo="Renegade",
+                marca="Jeep",
                 ano=2023,
-                usuario_id=usuario.id
+                usuario_id=usuario.id,
             )
             db.session.add(veiculo)
             db.session.commit()
 
             classes_esperadas = {
-                StatusServico.PENDENTE: 'warning',
-                StatusServico.AGUARDANDO_ORCAMENTO: 'info',
-                StatusServico.ORCAMENTO_APROVADO: 'primary',
-                StatusServico.EM_ANDAMENTO: 'primary',
-                StatusServico.CONCLUIDO: 'success',
-                StatusServico.CANCELADO: 'danger'
+                StatusServico.PENDENTE: "warning",
+                StatusServico.AGUARDANDO_ORCAMENTO: "info",
+                StatusServico.ORCAMENTO_APROVADO: "primary",
+                StatusServico.EM_ANDAMENTO: "primary",
+                StatusServico.CONCLUIDO: "success",
+                StatusServico.CANCELADO: "danger",
             }
 
             for i, (status, classe) in enumerate(classes_esperadas.items()):
                 servico = Servico(
-                    descricao=f'Teste class {i}',
-                    veiculo_id=veiculo.id,
-                    status=status
+                    descricao=f"Teste class {i}", veiculo_id=veiculo.id, status=status
                 )
                 db.session.add(servico)
                 db.session.commit()
@@ -730,6 +675,6 @@ class TestTipoUsuario:
 
     def test_todos_tipos(self, app):
         """Testa todos os tipos de usuário"""
-        assert TipoUsuario.CLIENTE.value == 'cliente'
-        assert TipoUsuario.MECANICO.value == 'mecanico'
-        assert TipoUsuario.GERENTE.value == 'gerente'
+        assert TipoUsuario.CLIENTE.value == "cliente"
+        assert TipoUsuario.MECANICO.value == "mecanico"
+        assert TipoUsuario.GERENTE.value == "gerente"
