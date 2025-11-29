@@ -11,58 +11,51 @@
 ## Diagrama de Casos de Uso
 
 ```mermaid
-flowchart LR
-    subgraph Atores
-        C((Cliente))
-        M((Mecanico))
-        G((Gerente))
+flowchart TB
+    subgraph CLIENTE["Cliente"]
+        C1[Cadastrar Veiculo]
+        C2[Solicitar Servico]
+        C3[Aprovar Orcamento]
+        C4[Acompanhar Status]
     end
 
-    subgraph Sistema["Sistema Oficina Mecanica"]
-        AUTH["Autenticacao"]
-        VEIC["Gerenciar Veiculos"]
-        SERV["Gerenciar Servicos"]
-        ORCA["Gerenciar Orcamentos"]
-        USER["Gerenciar Usuarios"]
-        DASH["Visualizar Dashboard"]
+    subgraph MECANICO["Mecanico"]
+        M1[Criar Orcamento]
+        M2[Executar Servico]
+        M3[Concluir Servico]
     end
 
-    C --> AUTH
-    C --> VEIC
-    C --> SERV
-    C --> ORCA
-    C --> DASH
+    subgraph GERENTE["Gerente"]
+        G1[Gerenciar Usuarios]
+        G2[Atribuir Mecanico]
+        G3[Visualizar Relatorios]
+    end
 
-    M --> AUTH
-    M --> SERV
-    M --> ORCA
-    M --> DASH
-
-    G --> AUTH
-    G --> VEIC
-    G --> SERV
-    G --> ORCA
-    G --> USER
-    G --> DASH
+    C1 --> C2
+    C2 --> M1
+    M1 --> C3
+    C3 --> G2
+    G2 --> M2
+    M2 --> M3
+    M3 --> C4
 ```
 
-## Permissões por Ator (RBAC)
+## Permissões (RBAC)
 
 | Recurso | Cliente | Mecânico | Gerente |
 |---------|:-------:|:--------:|:-------:|
-| Veículos próprios | CRUD | R | CRUD |
-| Serviços próprios | CR | RU | CRUD |
+| Veículos | CRUD | R | CRUD |
+| Serviços | CR | RU | CRUD |
 | Orçamentos | R | CRU | CRUD |
 | Usuários | - | - | CRUD |
-| Dashboard | Próprio | Próprio | Completo |
 
 **Legenda:** C=Create, R=Read, U=Update, D=Delete
 
-## Fluxo Principal do Sistema
+## Fluxo Principal
 
-1. **Cliente** cadastra veículo e solicita serviço
-2. **Mecânico** cria orçamento para o serviço
-3. **Cliente** aprova ou rejeita orçamento
-4. **Gerente** atribui mecânico ao serviço aprovado
-5. **Mecânico** executa e conclui o serviço
-6. **Cliente** visualiza resultado no dashboard
+1. **Cliente** cadastra veículo → solicita serviço
+2. **Mecânico** cria orçamento → aguarda aprovação
+3. **Cliente** aprova orçamento
+4. **Gerente** atribui mecânico
+5. **Mecânico** executa → conclui serviço
+6. **Cliente** acompanha resultado
